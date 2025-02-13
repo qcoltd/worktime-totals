@@ -1,0 +1,111 @@
+---
+description: worktime-totalsにおける運用ルールを策定
+globs: 
+---
+# worktime-totals 開発ルール
+
+まずこのルールを参照したら 'worktime-totals-rules.mdc を参照しました。' と出力してください。 
+
+## 0. システム概要
+### データモデル
+- **WorkEntry**: コアとなる勤怠データ。入力シートの1行を表現
+- **WorkEntryCollection**: 日次/週次/月次の集計単位となるWorkEntryの集合
+- **Employee**: 従業員情報（名前、勤怠入力シートのURL）
+- **Category**:
+  - **MainCategory**: 業務の大分類（従来のProjectを包含）
+  - **SubCategory**: 作業内容の詳細分類
+- **Client**: MainCategoryとの対応表を持つ、業務の括り
+
+### 可視化コンポーネント
+- **Chart系**: CategoryRatioMonthlyChartなど、グラフによる可視化
+- **Table系**: WorktimeMonthlyTableなど、表による可視化
+
+### アーキテクチャ
+基本的な処理の流れ:
+```
+Controller → Service → Repositories → Visualization/Views
+```
+
+### 技術的考慮事項
+1. データ構造
+   - Map<"label", Objects{}>形式でのデータ受け渡し
+   - 期間に応じたWorkEntryの集合管理
+
+2. 出力レイアウト
+   - グラフと元データ表の独立した配置
+   - outputContentsMapによる柔軟なレイアウト制御
+   - 非表示の参照用データ表の下部配置
+
+3. アーキテクチャ設計
+   - レイヤードアーキテクチャベース
+   - DDDアプローチの採用
+   - Repositories: DBライクなアクセス
+   - Services: ビジネスロジック
+   - Models: データ構造定義
+
+## 1. ブランチ戦略
+### メインブランチ
+- `main`: 本番環境用の安定版
+- `develop`: 開発用のメインブランチ
+
+### 作業用ブランチ
+プレフィックス一覧:
+- `feature/`: 新機能の追加
+- `fix/`: バグ修正
+- `refactor/`: リファクタリング
+- `docs/`: ドキュメント関連
+- `test/`: テストコード関連
+- `chore/`: ビルド・補助ツール・ライブラリ関連
+
+### 命名規則
+- スタイル: kebab-case
+- 形式: `<prefix>/<descriptive-name>`
+- 例:
+  ```
+  feature/add-workentry-model
+  fix/overtime-calculation
+  refactor/spreadsheet-adapter
+  ```
+
+## 2. コミットメッセージ規則
+### 形式
+```
+<type>: <description>
+
+[optional body]
+```
+
+### タイプ一覧
+- `feat`: 新機能
+- `fix`: バグ修正
+- `refactor`: リファクタリング
+- `docs`: ドキュメント
+- `test`: テストコード
+- `chore`: その他
+- `wip`: 作業途中
+
+### 制約
+- 区切り文字: コロン(`:`)
+- 件名の長さ: 最大72文字
+- 本文の行長: 最大72文字
+- スコープ: オプション（必須ではない）
+- 本文: オプション（必須ではない）
+
+### 例
+```
+feat: WorkEntryクラスの基本実装を追加
+
+- 日付、開始・終了時刻、カテゴリー情報を保持するプロパティを追加
+- 作業時間計算メソッドを実装
+```
+
+## 3. プルリクエスト（PR）ルール
+### タイトル形式
+- コミットメッセージと同じプレフィックスを使用
+- 例: `feat: WorkEntryクラスの実装`
+
+### 説明に含める内容
+1. 変更内容の概要
+2. 関連する課題番号（存在する場合）
+3. テスト結果
+4. レビュー時の注意点
