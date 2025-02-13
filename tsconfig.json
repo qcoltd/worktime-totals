@@ -13,5 +13,5 @@
       "@/*": ["./*"]
     },
   },
-  "include": ["src/*", "types/*"]
+  "include": ["src/*", "types/*", "scripts/workTimeTotals/src/domain", "scripts/workTimeTotals/src/infrastructure", "scripts/workTimeTotals/src/application", "scripts/workTimeTotals/src/presentation", "scripts/workTimeTotals/src/presentation/visualization"]
 }
