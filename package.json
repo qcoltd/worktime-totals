@@ -1,0 +1,47 @@
+{
+  "name": "kintai-gas",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "clasp": "clasp",
+    "login": "clasp login",
+    "build": "tsc --noEmit & vite build",
+    "setup": "node tools/createClaspJson.js",
+    "setup:env": "node tools/createClaspJson.js $1",
+    "dev": "ts-node -T -r tsconfig-paths/register src/dev.ts",
+    "test": "vitest",
+    "push:kintaiTotalling": "clasp -P scripts/kintaiTotalling push",
+    "push:kintaiTable": "clasp -P scripts/kintaiTable push",
+    "push:copyButton": "clasp -P scripts/copyButton push",
+    "push:copyTimeLine": "clasp -P scripts/copyTimeLine push",
+    "push": "run-p push:*",
+    "deploy:all": "npm run setup && npm run build && npm run push",
+    "deploy:kintaiTotalling": "npm run setup && npm run build && npm run push:kintaiTotalling",
+    "deploy:kintaiTable": "npm run setup && npm run build && npm run push:kintaiTable",
+    "deploy:copyButton": "npm run setup && npm run build && npm run push:copyButton",
+    "deploy:copyTimeLine": "npm run setup && npm run build && npm run push:copyTimeLine",
+    "deploy:prod": "npm run deploy:env prod",
+    "deploy:env": "run(){ npm run setup:env $1 && npm run build && npm run push; }; run"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "date-fns": "^3.6.0",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0"
+  },
+  "devDependencies": {
+    "@google/clasp": "^2.4.2",
+    "@types/google-apps-script": "^1.0.82",
+    "@types/node": "^20.11.25",
+    "dotenv": "^16.4.5",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.4.2",
+    "vite": "^5.4.10",
+    "vitest": "^2.1.2"
+  },
+  "volta": {
+    "node": "22.11.0"
+  }
+}
