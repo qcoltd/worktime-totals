@@ -6,12 +6,14 @@ import {dayjsLib} from '../libs/dayjs';
 export interface SpreadsheetAdapterInterface {
   readWorkEntries(): WorkEntryCollection;
   writeWorkEntries(entries: WorkEntryCollection): void;
+  setSheetName(sheetName: string): void;
+  getColumnValues(column: string): any[];
 }
 
 export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
   constructor(
-    private readonly spreadsheetId: string,
-    private readonly sheetName: string
+    private spreadsheetId: string,
+    private sheetName: string
   ) {}
 
   readWorkEntries(): WorkEntryCollection {
@@ -123,5 +125,46 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
       'mainCategory', 'subCategory', 'description'
     ];
     return requiredColumns.every(col => headers.includes(col));
+  }
+
+  setSheetName(sheetName: string): void {
+    this.sheetName = sheetName;
+  }
+
+  getColumnValues(column: string): any[] {
+    const sheet = this.getSheet();
+    const range = sheet.getRange(`${column}:${column}`);
+    return range.getValues().map(row => row[0]);
+  }
+
+  private getSheet(): GoogleAppsScript.Spreadsheet.Sheet {
+    try {
+      const spreadsheet = SpreadsheetApp.openById(this.spreadsheetId);
+      if (!spreadsheet) {
+        throw new WorktimeError(
+          `Spreadsheet not found: ${this.spreadsheetId}`,
+          ErrorCodes.SHEET_NOT_FOUND
+        );
+      }
+
+      const sheet = spreadsheet.getSheetByName(this.sheetName);
+      if (!sheet) {
+        throw new WorktimeError(
+          `Sheet not found: ${this.sheetName}`,
+          ErrorCodes.SHEET_NOT_FOUND
+        );
+      }
+      return sheet;
+    } catch (error) {
+      if (error instanceof WorktimeError) {
+        throw error;
+      }
+      // SpreadsheetApp.openByIdが例外を投げた場合
+      throw new WorktimeError(
+        'Failed to access spreadsheet',
+        ErrorCodes.SHEET_ACCESS_ERROR,
+        error
+      );
+    }
   }
 } 
