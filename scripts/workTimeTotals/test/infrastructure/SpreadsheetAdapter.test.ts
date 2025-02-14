@@ -2,6 +2,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { SpreadsheetAdapter } from '../../src/infrastructure/SpreadsheetAdapter';
 import { WorkEntry } from '../../src/domain/workEntry/WorkEntry';
 import { WorkEntryCollection } from '../../src/domain/workEntry/WorkEntryCollection';
+import { WorktimeError, ErrorCodes } from '../../src/domain/error/WorktimeError';
 
 // SpreadsheetAppのモック
 const mockSheet = {
@@ -54,6 +55,110 @@ describe('SpreadsheetAdapter', () => {
       mockSpreadsheet.getSheetByName.mockReturnValue(null);
 
       expect(() => adapter.readWorkEntries()).toThrow('Sheet not found');
+    });
+
+    it('必須カラムが不足している場合はINVALID_SHEET_FORMATエラーを投げること', () => {
+      // シートは存在するようにモックを設定
+      mockSpreadsheet.getSheetByName.mockReturnValue(mockSheet);
+      
+      const mockData = [
+        ['date', 'startTime'], // 必須カラムの一部が欠けている
+        ['2025/02/12', '10:00']
+      ];
+      mockSheet.getDataRange.mockReturnValue({ getValues: () => mockData });
+
+      expect(() => adapter.readWorkEntries())
+        .toThrow(WorktimeError);
+      
+      try {
+        adapter.readWorkEntries();
+      } catch (error) {
+        expect(error instanceof WorktimeError).toBe(true);
+        expect(error.code).toBe(ErrorCodes.INVALID_SHEET_FORMAT);
+        expect(error.details).toEqual({ headers: ['date', 'startTime'] });
+      }
+    });
+
+    it('行データのパースに失敗した場合はINVALID_SHEET_FORMATエラーを投げること', () => {
+      // シートは存在するようにモックを設定
+      mockSpreadsheet.getSheetByName.mockReturnValue(mockSheet);
+      
+      const mockData = [
+        ['date', 'startTime', 'endTime', 'mainCategory', 'subCategory', 'description'],
+        // 完全に不正な日付文字列を設定
+        ['invalid-date-string', '10:00', '12:00', '学習', '開発', '技術研修']
+      ];
+      mockSheet.getDataRange.mockReturnValue({ getValues: () => mockData });
+
+      expect(() => adapter.readWorkEntries())
+        .toThrow(WorktimeError);
+      
+      try {
+        adapter.readWorkEntries();
+      } catch (error) {
+        expect(error instanceof WorktimeError).toBe(true);
+        expect(error.code).toBe(ErrorCodes.INVALID_SHEET_FORMAT);
+        expect(error.details).toBeDefined();
+        expect(error.message).toContain('Failed to parse row 2');
+      }
+    });
+
+    it('スプレッドシートへのアクセスに失敗した場合はSHEET_ACCESS_ERRORを投げること', () => {
+      // シートは存在するようにモックを設定
+      mockSpreadsheet.getSheetByName.mockReturnValue(mockSheet);
+      
+      // getDataRangeでエラーを投げるように設定
+      mockSheet.getDataRange.mockImplementation(() => {
+        throw new Error('Network error');
+      });
+
+      expect(() => adapter.readWorkEntries())
+        .toThrow(WorktimeError);
+      
+      try {
+        adapter.readWorkEntries();
+      } catch (error) {
+        expect(error instanceof WorktimeError).toBe(true);
+        expect(error.code).toBe(ErrorCodes.SHEET_ACCESS_ERROR);
+        expect(error.details).toBeDefined();
+      }
+    });
+
+    it('シートが存在しない場合はSHEET_NOT_FOUNDエラーを投げること', () => {
+      mockSpreadsheet.getSheetByName.mockReturnValue(null);
+
+      expect(() => adapter.readWorkEntries())
+        .toThrow(WorktimeError);
+      
+      try {
+        adapter.readWorkEntries();
+      } catch (error) {
+        expect(error instanceof WorktimeError).toBe(true);
+        expect(error.code).toBe(ErrorCodes.SHEET_NOT_FOUND);
+      }
+    });
+
+    it('存在しない日付の場合はエラーを投げること', () => {
+      // シートは存在するようにモックを設定
+      mockSpreadsheet.getSheetByName.mockReturnValue(mockSheet);
+      
+      // 文字列として不正な日付を渡す
+      const mockData = [
+        ['date', 'startTime', 'endTime', 'mainCategory', 'subCategory', 'description'],
+        ['2025/02/31', '10:00', '12:00', '学習', '開発', '技術研修']  // 文字列として2月31日を指定
+      ];
+      mockSheet.getDataRange.mockReturnValue({ getValues: () => mockData });
+
+      expect(() => adapter.readWorkEntries())
+        .toThrow(WorktimeError);
+      
+      try {
+        adapter.readWorkEntries();
+      } catch (error) {
+        expect(error instanceof WorktimeError).toBe(true);
+        expect(error.code).toBe(ErrorCodes.INVALID_SHEET_FORMAT);
+        expect(error.details).toBeDefined();
+      }
     });
   });
 

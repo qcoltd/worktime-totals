@@ -1,11 +1,45 @@
+import { WorktimeError, ErrorCodes } from '../domain/error/WorktimeError';
+
 // GAS環境とローカル環境で異なる方法でdayjsを取得
 const getDayjs = (): typeof dayjs.dayjs => {
   return typeof dayjs !== 'undefined' ? dayjs.dayjs : require('dayjs');
 };
 
 export const dayjsLib = {
-  // 日時文字列のパース
-  parse: (date: Date | string) => getDayjs()(date),
+  // 日時文字列のパース（厳密なチェック付き）
+  parse: (date: Date | string) => {
+    const dayjs = getDayjs();
+    if (typeof date === 'string') {
+      // YYYY/MM/DD形式の文字列を厳密にパース
+      const [year, month, day] = date.split('/').map(Number);
+      
+      // 各部分の妥当性チェック
+      if (
+        isNaN(year) || isNaN(month) || isNaN(day) ||
+        month < 1 || month > 12 ||
+        day < 1 || day > new Date(year, month, 0).getDate()
+      ) {
+        throw new WorktimeError(
+          'Invalid date format or value',
+          ErrorCodes.INVALID_DATE_FORMAT,
+          { date }
+        );
+      }
+
+      return dayjs(new Date(year, month - 1, day));
+    }
+
+    // Date型の場合の妥当性チェック
+    if (!(date instanceof Date) || isNaN(date.getTime())) {
+      throw new WorktimeError(
+        'Invalid date value',
+        ErrorCodes.INVALID_DATE_FORMAT,
+        { date }
+      );
+    }
+
+    return dayjs(date);
+  },
 
   // 時間差の計算（時間単位）
   diffHours: (start: string, end: string, baseDate: Date) => {

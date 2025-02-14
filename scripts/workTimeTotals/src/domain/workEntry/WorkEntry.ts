@@ -1,4 +1,5 @@
 import { dayjsLib } from '../../libs/dayjs';
+import { WorktimeError, ErrorCodes } from '../error/WorktimeError';
 
 interface WorkEntryProps {
   date: Date;
@@ -31,13 +32,37 @@ export class WorkEntry {
   private validateProps(props: WorkEntryProps): void {
     // 必須項目のチェック
     if (!props.subCategory) {
-      throw new Error('SubCategory is required');
+      throw new WorktimeError(
+        'SubCategory is required',
+        ErrorCodes.REQUIRED_FIELD_MISSING
+      );
     }
 
     // 時刻形式のバリデーション
     const timeFormat = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/;
     if (!timeFormat.test(props.startTime) || !timeFormat.test(props.endTime)) {
-      throw new Error('Invalid time format');
+      throw new WorktimeError(
+        'Invalid time format',
+        ErrorCodes.INVALID_TIME_FORMAT
+      );
+    }
+
+    // 日付のバリデーション
+    if (!(props.date instanceof Date) || isNaN(props.date.getTime())) {
+      throw new WorktimeError(
+        'Invalid date format',
+        ErrorCodes.INVALID_DATE_FORMAT
+      );
+    }
+
+    // 日付の妥当性チェックを追加
+    const date = dayjsLib.parse(props.date);
+    if (!date.isValid() || date.format('YYYY-MM-DD') !== date.format('YYYY-MM-DD')) {
+      throw new WorktimeError(
+        'Invalid date value',
+        ErrorCodes.INVALID_DATE_FORMAT,
+        { date: props.date }
+      );
     }
   }
 

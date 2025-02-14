@@ -1,5 +1,7 @@
 import { WorkEntry } from '../domain/workEntry/WorkEntry';
 import { WorkEntryCollection } from '../domain/workEntry/WorkEntryCollection';
+import { WorktimeError, ErrorCodes } from '../domain/error/WorktimeError';
+import {dayjsLib} from '../libs/dayjs';
 
 export interface SpreadsheetAdapterInterface {
   readWorkEntries(): WorkEntryCollection;
@@ -13,24 +15,49 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
   ) {}
 
   readWorkEntries(): WorkEntryCollection {
-    const sheet = SpreadsheetApp.openById(this.spreadsheetId).getSheetByName(this.sheetName);
-    if (!sheet) {
-      throw new Error(`Sheet not found: ${this.sheetName}`);
-    }
-
-    const [headers, ...rows] = sheet.getDataRange().getValues();
-    const collection = new WorkEntryCollection();
-
-    rows.forEach(row => {
-      try {
-        const entry = this.createWorkEntryFromRow(row, headers);
-        collection.add(entry);
-      } catch (error) {
-        console.error(`Failed to parse row: ${error}`);
+    try {
+      const sheet = SpreadsheetApp.openById(this.spreadsheetId).getSheetByName(this.sheetName);
+      if (!sheet) {
+        throw new WorktimeError(
+          `Sheet not found: ${this.sheetName}`,
+          ErrorCodes.SHEET_NOT_FOUND
+        );
       }
-    });
 
-    return collection;
+      const [headers, ...rows] = sheet.getDataRange().getValues();
+      if (!this.validateHeaders(headers)) {
+        throw new WorktimeError(
+          'Invalid sheet format: Required columns are missing',
+          ErrorCodes.INVALID_SHEET_FORMAT,
+          { headers }
+        );
+      }
+
+      const collection = new WorkEntryCollection();
+      rows.forEach((row, index) => {
+        try {
+          const entry = this.createWorkEntryFromRow(row, headers);
+          collection.add(entry);
+        } catch (error) {
+          throw new WorktimeError(
+            `Failed to parse row ${index + 2}`,
+            ErrorCodes.INVALID_SHEET_FORMAT,
+            { row, error }
+          );
+        }
+      });
+
+      return collection;
+    } catch (error) {
+      if (error instanceof WorktimeError) {
+        throw error;
+      }
+      throw new WorktimeError(
+        'Failed to read work entries',
+        ErrorCodes.SHEET_ACCESS_ERROR,
+        error
+      );
+    }
   }
 
   writeWorkEntries(entries: WorkEntryCollection): void {
@@ -66,13 +93,35 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
       return index >= 0 ? row[index] : null;
     };
 
-    return new WorkEntry({
-      date: new Date(getColumnValue('date')),
-      startTime: getColumnValue('startTime'),
-      endTime: getColumnValue('endTime'),
-      mainCategory: getColumnValue('mainCategory'),
-      subCategory: getColumnValue('subCategory'),
-      description: getColumnValue('description')
-    });
+    try {
+      const dateValue = getColumnValue('date');
+      const parsedDate = dayjsLib.parse(dateValue).toDate();
+
+      return new WorkEntry({
+        date: parsedDate,
+        startTime: getColumnValue('startTime'),
+        endTime: getColumnValue('endTime'),
+        mainCategory: getColumnValue('mainCategory'),
+        subCategory: getColumnValue('subCategory'),
+        description: getColumnValue('description')
+      });
+    } catch (error) {
+      if (error instanceof WorktimeError) {
+        throw error;
+      }
+      throw new WorktimeError(
+        'Failed to parse row data',
+        ErrorCodes.INVALID_SHEET_FORMAT,
+        { error }
+      );
+    }
+  }
+
+  private validateHeaders(headers: unknown[]): boolean {
+    const requiredColumns = [
+      'date', 'startTime', 'endTime',
+      'mainCategory', 'subCategory', 'description'
+    ];
+    return requiredColumns.every(col => headers.includes(col));
   }
 } 
