@@ -1,5 +1,5 @@
 // GAS環境とローカル環境で異なる方法でdayjsを取得
-const getDayjs = () => {
+const getDayjs = (): typeof dayjs.dayjs => {
   return typeof dayjs !== 'undefined' ? dayjs.dayjs : require('dayjs');
 };
 
