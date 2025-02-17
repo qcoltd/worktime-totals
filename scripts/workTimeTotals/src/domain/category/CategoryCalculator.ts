@@ -18,6 +18,29 @@ export class CategoryCalculator {
     return totals;
   }
 
+  /**
+   * 指定したメインカテゴリのサブカテゴリごとの作業時間を計算
+   */
+  static calculateTotalsBySubCategory(
+    entries: WorkEntry[],
+    mainCategory: string
+  ): Map<string, number> {
+    const totals = new Map<string, number>();
+
+    entries
+      .filter(entry => 
+        entry.subCategory !== '休憩' && 
+        entry.mainCategory === mainCategory
+      )
+      .forEach(entry => {
+        const current = totals.get(entry.subCategory) || 0;
+        const duration = this.calculateDuration(entry);
+        totals.set(entry.subCategory, current + duration);
+      });
+
+    return totals;
+  }
+
   private static calculateDuration(entry: WorkEntry): number {
     const [startHours, startMinutes] = entry.startTime.split(':').map(Number);
     const [endHours, endMinutes] = entry.endTime.split(':').map(Number);

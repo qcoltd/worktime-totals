@@ -94,4 +94,40 @@ describe('CategoryCalculator', () => {
       expect(totals.get('WEB開発')).toBe(11); // 3時間 + 8時間
     });
   });
+
+  describe('calculateTotalsBySubCategory', () => {
+    it('指定したメインカテゴリのサブカテゴリごとの作業時間を計算できること', () => {
+      const entries = [
+        new WorkEntry({
+          date: new Date('2024/03/01'),
+          startTime: '09:00',
+          endTime: '12:00', // 3時間
+          mainCategory: 'WEB開発',
+          subCategory: 'コーディング',
+          description: 'タスク1'
+        }),
+        new WorkEntry({
+          date: new Date('2024/03/01'),
+          startTime: '13:00',
+          endTime: '17:00', // 4時間
+          mainCategory: 'WEB開発',
+          subCategory: 'テスト',
+          description: 'タスク2'
+        }),
+        new WorkEntry({
+          date: new Date('2024/03/01'),
+          startTime: '17:00',
+          endTime: '18:00', // 1時間
+          mainCategory: '運用',
+          subCategory: '定例作業',
+          description: 'タスク3'
+        })
+      ];
+
+      const totals = CategoryCalculator.calculateTotalsBySubCategory(entries, 'WEB開発');
+      expect(totals.get('コーディング')).toBe(3);
+      expect(totals.get('テスト')).toBe(4);
+      expect(totals.get('定例作業')).toBeUndefined(); // 他のメインカテゴリは含まれない
+    });
+  });
 }); 
