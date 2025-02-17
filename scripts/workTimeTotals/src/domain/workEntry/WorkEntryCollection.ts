@@ -2,6 +2,7 @@ import { dayjsLib } from '../../libs/dayjs';
 import { WorkEntry } from './WorkEntry';
 import { WORK_TIME } from '../../define';
 import { OvertimeCalculator } from '../overtime/OvertimeCalculator';
+import { CategoryCalculator } from '../category/CategoryCalculator';
 
 export class WorkEntryCollection {
   constructor(
@@ -31,16 +32,7 @@ export class WorkEntryCollection {
   }
 
   totalDurationByCategory(): Map<string, number> {
-    const totals = new Map<string, number>();
-
-    this._entries
-      .filter(entry => entry.subCategory !== '休憩') // 休憩を除外
-      .forEach(entry => {
-        const current = totals.get(entry.mainCategory) || 0;
-        totals.set(entry.mainCategory, current + this.calculateDuration(entry));
-      });
-
-    return totals;
+    return CategoryCalculator.calculateTotalsByCategory(this._entries);
   }
 
   private calculateDuration(entry: WorkEntry): number {

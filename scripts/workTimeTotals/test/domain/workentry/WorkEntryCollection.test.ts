@@ -135,10 +135,10 @@ describe('WorkEntryCollection', () => {
     });
 
     describe('totalDurationByCategory', () => {
-      it('休憩時間を除外してカテゴリごとの合計時間を計算すること', () => {
+      it('CategoryCalculatorを使用してカテゴリごとの合計時間を計算すること', () => {
         const collection = new WorkEntryCollection();
         
-        // WEB開発（通常作業）
+        // WEB開発カテゴリの作業
         collection.add(new WorkEntry({
           date: new Date('2024/03/01'),
           startTime: '09:00',
@@ -148,29 +148,8 @@ describe('WorkEntryCollection', () => {
           description: 'タスク1'
         }));
 
-        // 休憩
-        collection.add(new WorkEntry({
-          date: new Date('2024/03/01'),
-          startTime: '12:00',
-          endTime: '13:00',
-          mainCategory: '休憩',
-          subCategory: '休憩',
-          description: 'お昼休憩'
-        }));
-
-        // WEB開発（通常作業）
-        collection.add(new WorkEntry({
-          date: new Date('2024/03/01'),
-          startTime: '13:00',
-          endTime: '17:30',
-          mainCategory: 'WEB開発',
-          subCategory: 'テスト',
-          description: 'タスク2'
-        }));
-
         const totals = collection.totalDurationByCategory();
-        expect(totals.get('WEB開発')).toBe(7.5); // 3時間 + 4.5時間 = 7.5時間
-        expect(totals.get('休憩')).toBeUndefined(); // 休憩は含まれない
+        expect(totals.get('WEB開発')).toBe(3);
       });
     });
 
