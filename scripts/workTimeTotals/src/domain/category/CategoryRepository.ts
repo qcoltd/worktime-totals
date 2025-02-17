@@ -1,6 +1,6 @@
-import { ErrorCodes, WorktimeError } from "../domain/error/WorktimeError";
-import { CATEGORY_MASTER } from "../define";
-import { SpreadsheetAdapter } from "./SpreadsheetAdapter";
+import { ErrorCodes, WorktimeError } from "../error/WorktimeError";
+import { CATEGORY_MASTER } from "../../define";
+import { SpreadsheetAdapter } from "../../infrastructure/SpreadsheetAdapter";
 
 export interface CategoryRepositoryInterface {
   getMainCategories(): string[];
