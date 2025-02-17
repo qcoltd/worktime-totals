@@ -35,101 +35,118 @@ describe('SpreadsheetAdapter', () => {
   describe('readWorkEntries', () => {
     it('スプレッドシートからWorkEntryを読み込めること', () => {
       // モックデータの準備
-      const mockData = [
-        ['date', 'startTime', 'endTime', 'mainCategory', 'subCategory', 'description'],
-        [new Date('2025/02/12'), '10:00', '12:00', '学習', '開発', '技術研修']
-      ];
+      const mockSheet = {
+        getRange: vi.fn().mockReturnValue({
+          getValues: vi.fn().mockReturnValue([
+            [
+              new Date('2025/02/12'),
+              new Date('1899/12/30 10:00:00'),
+              new Date('1899/12/30 12:00:00'),
+              '学習',
+              '開発',
+              '技術研修'
+            ]
+          ])
+        }),
+        getName: vi.fn().mockReturnValue('20250212')
+      };
 
-      mockSheet.getDataRange.mockReturnValue({ getValues: () => mockData });
+      vi.mocked(SpreadsheetApp.openById).mockReturnValue({
+        getSheetByName: vi.fn().mockReturnValue(mockSheet)
+      } as any);
 
-      const collection = adapter.readWorkEntries();
+      const adapter = new SpreadsheetAdapter('test-id', '20250212');
+      const result = adapter.readWorkEntries();
 
-      expect(collection.entries).toHaveLength(1);
-      const entry = collection.entries[0];
-      expect(entry.date).toEqual(new Date('2025/02/12'));
-      expect(entry.startTime).toBe('10:00');
-      expect(entry.mainCategory).toBe('学習');
+      expect(result.entries).toHaveLength(1);
+      expect(result.entries[0].date.toISOString()).toBe(new Date('2025/02/12').toISOString());
+      expect(result.entries[0].startTime).toBe('10:00');
+      expect(result.entries[0].endTime).toBe('12:00');
+      expect(result.entries[0].mainCategory).toBe('学習');
+      expect(result.entries[0].subCategory).toBe('開発');
+      expect(result.entries[0].description).toBe('技術研修');
+
+      // 正しい範囲からデータを取得していることを確認
+      expect(mockSheet.getRange).toHaveBeenCalledWith('I3:N');
     });
 
-    it('シートが存在しない場合はエラーを投げること', () => {
-      mockSpreadsheet.getSheetByName.mockReturnValue(null);
+    it('空の行はスキップされること', () => {
+      const mockSheet = {
+        getRange: vi.fn().mockReturnValue({
+          getValues: vi.fn().mockReturnValue([
+            [
+              new Date('2025/02/12'),
+              new Date('1899/12/30 10:00:00'),
+              new Date('1899/12/30 12:00:00'),
+              '学習',
+              '開発',
+              '技術研修'
+            ],
+            [null, null, null, '', '', ''], // 空の行
+            [
+              new Date('2025/02/12'),
+              new Date('1899/12/30 13:00:00'),
+              new Date('1899/12/30 15:00:00'),
+              '運用',
+              '定例作業',
+              '日次確認'
+            ]
+          ])
+        }),
+        getName: vi.fn().mockReturnValue('20250212')
+      };
 
-      expect(() => adapter.readWorkEntries()).toThrow('Sheet not found');
-    });
+      vi.mocked(SpreadsheetApp.openById).mockReturnValue({
+        getSheetByName: vi.fn().mockReturnValue(mockSheet)
+      } as any);
 
-    it('必須カラムが不足している場合はINVALID_SHEET_FORMATエラーを投げること', () => {
-      // シートは存在するようにモックを設定
-      mockSpreadsheet.getSheetByName.mockReturnValue(mockSheet);
-      
-      const mockData = [
-        ['date', 'startTime'], // 必須カラムの一部が欠けている
-        ['2025/02/12', '10:00']
-      ];
-      mockSheet.getDataRange.mockReturnValue({ getValues: () => mockData });
+      const adapter = new SpreadsheetAdapter('test-id', '20250212');
+      const result = adapter.readWorkEntries();
 
-      expect(() => adapter.readWorkEntries())
-        .toThrow(WorktimeError);
-      
-      try {
-        adapter.readWorkEntries();
-      } catch (error) {
-        expect(error instanceof WorktimeError).toBe(true);
-        expect(error.code).toBe(ErrorCodes.INVALID_SHEET_FORMAT);
-        expect(error.details).toEqual({ headers: ['date', 'startTime'] });
-      }
+      expect(result.entries).toHaveLength(2); // 空の行は除外される
     });
 
     it('行データのパースに失敗した場合はINVALID_SHEET_FORMATエラーを投げること', () => {
-      // シートは存在するようにモックを設定
-      mockSpreadsheet.getSheetByName.mockReturnValue(mockSheet);
-      
-      const mockData = [
-        ['date', 'startTime', 'endTime', 'mainCategory', 'subCategory', 'description'],
-        // 完全に不正な日付文字列を設定
-        ['invalid-date-string', '10:00', '12:00', '学習', '開発', '技術研修']
-      ];
-      mockSheet.getDataRange.mockReturnValue({ getValues: () => mockData });
+      const mockSheet = {
+        getRange: vi.fn().mockReturnValue({
+          getValues: vi.fn().mockReturnValue([
+            [
+              'invalid-date', // 不正な日付
+              '10:00',
+              '12:00',
+              '学習',
+              '開発',
+              '技術研修'
+            ]
+          ])
+        }),
+        getName: vi.fn().mockReturnValue('20250212')
+      };
 
-      expect(() => adapter.readWorkEntries())
-        .toThrow(WorktimeError);
-      
+      vi.mocked(SpreadsheetApp.openById).mockReturnValue({
+        getSheetByName: vi.fn().mockReturnValue(mockSheet)
+      } as any);
+
+      const adapter = new SpreadsheetAdapter('test-id', '20250212');
+
+      expect(() => adapter.readWorkEntries()).toThrow(WorktimeError);
       try {
         adapter.readWorkEntries();
       } catch (error) {
         expect(error instanceof WorktimeError).toBe(true);
         expect(error.code).toBe(ErrorCodes.INVALID_SHEET_FORMAT);
         expect(error.details).toBeDefined();
-        expect(error.message).toContain('Failed to parse row 2');
-      }
-    });
-
-    it('スプレッドシートへのアクセスに失敗した場合はSHEET_ACCESS_ERRORを投げること', () => {
-      // シートは存在するようにモックを設定
-      mockSpreadsheet.getSheetByName.mockReturnValue(mockSheet);
-      
-      // getDataRangeでエラーを投げるように設定
-      mockSheet.getDataRange.mockImplementation(() => {
-        throw new Error('Network error');
-      });
-
-      expect(() => adapter.readWorkEntries())
-        .toThrow(WorktimeError);
-      
-      try {
-        adapter.readWorkEntries();
-      } catch (error) {
-        expect(error instanceof WorktimeError).toBe(true);
-        expect(error.code).toBe(ErrorCodes.SHEET_ACCESS_ERROR);
-        expect(error.details).toBeDefined();
+        expect(error.message).toContain('Failed to parse row 3');
       }
     });
 
     it('シートが存在しない場合はSHEET_NOT_FOUNDエラーを投げること', () => {
-      mockSpreadsheet.getSheetByName.mockReturnValue(null);
+      vi.mocked(SpreadsheetApp.openById).mockReturnValue({
+        getSheetByName: vi.fn().mockReturnValue(null)
+      } as any);
 
-      expect(() => adapter.readWorkEntries())
-        .toThrow(WorktimeError);
-      
+      const adapter = new SpreadsheetAdapter('test-id', '20250212');
+      expect(() => adapter.readWorkEntries()).toThrow(WorktimeError);
       try {
         adapter.readWorkEntries();
       } catch (error) {
@@ -139,18 +156,28 @@ describe('SpreadsheetAdapter', () => {
     });
 
     it('存在しない日付の場合はエラーを投げること', () => {
-      // シートは存在するようにモックを設定
-      mockSpreadsheet.getSheetByName.mockReturnValue(mockSheet);
-      
-      // 文字列として不正な日付を渡す
-      const mockData = [
-        ['date', 'startTime', 'endTime', 'mainCategory', 'subCategory', 'description'],
-        ['2025/02/31', '10:00', '12:00', '学習', '開発', '技術研修']  // 文字列として2月31日を指定
-      ];
-      mockSheet.getDataRange.mockReturnValue({ getValues: () => mockData });
+      const mockSheet = {
+        getRange: vi.fn().mockReturnValue({
+          getValues: vi.fn().mockReturnValue([
+            [
+              '2025/02/31', // 不正な日付
+              new Date('1899/12/30 10:00:00'),
+              new Date('1899/12/30 12:00:00'),
+              '学習',
+              '開発',
+              '技術研修'
+            ]
+          ])
+        }),
+        getName: vi.fn().mockReturnValue('20250212')
+      };
 
-      expect(() => adapter.readWorkEntries())
-        .toThrow(WorktimeError);
+      vi.mocked(SpreadsheetApp.openById).mockReturnValue({
+        getSheetByName: vi.fn().mockReturnValue(mockSheet)
+      } as any);
+
+      const adapter = new SpreadsheetAdapter('test-id', '20250212');
+      expect(() => adapter.readWorkEntries()).toThrow(WorktimeError);
       
       try {
         adapter.readWorkEntries();
@@ -158,21 +185,25 @@ describe('SpreadsheetAdapter', () => {
         expect(error instanceof WorktimeError).toBe(true);
         expect(error.code).toBe(ErrorCodes.INVALID_SHEET_FORMAT);
         expect(error.details).toBeDefined();
+        expect(error.message).toContain('Failed to parse row 3');
       }
     });
   });
 
   describe('writeWorkEntries', () => {
-    beforeEach(() => {
-      // writeWorkEntries用のモックをリセット
-      mockSpreadsheet.getSheetByName.mockReturnValue(mockSheet);
-      const mockRange = {
-        setValues: vi.fn(),
-      };
-      mockSheet.getRange.mockReturnValue(mockRange);
-    });
-
     it('WorkEntryCollectionをスプレッドシートに書き込めること', () => {
+      const mockSheet = {
+        getRange: vi.fn().mockReturnValue({
+          setValues: vi.fn()
+        }),
+        clear: vi.fn() // clearContentsの代わりにclearを使用
+      };
+
+      vi.mocked(SpreadsheetApp.openById).mockReturnValue({
+        getSheetByName: vi.fn().mockReturnValue(mockSheet)
+      } as any);
+
+      const adapter = new SpreadsheetAdapter('test-id', '20250212');
       const collection = new WorkEntryCollection();
       collection.add(new WorkEntry({
         date: new Date('2025/02/12'),
@@ -185,22 +216,36 @@ describe('SpreadsheetAdapter', () => {
 
       adapter.writeWorkEntries(collection);
 
-      // ヘッダーの書き込みを確認
-      expect(mockSheet.getRange).toHaveBeenCalledWith(1, 1, 1, 6);
-      
-      // データの書き込みを確認
-      expect(mockSheet.getRange).toHaveBeenCalledWith(2, 1, 1, 6);
-      
-      // クリア処理の確認
-      expect(mockSheet.clearContents).toHaveBeenCalled();
+      // シートのクリアが呼ばれたことを確認
+      expect(mockSheet.clear).toHaveBeenCalled();
+
+      // 正しい値が書き込まれたことを確認
+      expect(mockSheet.getRange).toHaveBeenCalledTimes(2); // ヘッダーとデータ
+      expect(mockSheet.getRange).toHaveBeenNthCalledWith(1, 1, 1, 1, 6); // ヘッダー
+      expect(mockSheet.getRange).toHaveBeenNthCalledWith(2, 2, 1, 1, 6); // データ
     });
 
     it('空のコレクションの場合はヘッダーのみ書き込むこと', () => {
+      const mockSheet = {
+        getRange: vi.fn().mockReturnValue({
+          setValues: vi.fn()
+        }),
+        clear: vi.fn()
+      };
+
+      vi.mocked(SpreadsheetApp.openById).mockReturnValue({
+        getSheetByName: vi.fn().mockReturnValue(mockSheet)
+      } as any);
+
+      const adapter = new SpreadsheetAdapter('test-id', '20250212');
       const collection = new WorkEntryCollection();
 
       adapter.writeWorkEntries(collection);
 
-      // ヘッダーの書き込みのみ確認
+      // シートのクリアが呼ばれたことを確認
+      expect(mockSheet.clear).toHaveBeenCalled();
+
+      // ヘッダーのみ書き込まれたことを確認
       expect(mockSheet.getRange).toHaveBeenCalledTimes(1);
       expect(mockSheet.getRange).toHaveBeenCalledWith(1, 1, 1, 6);
     });

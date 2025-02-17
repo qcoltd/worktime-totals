@@ -1,16 +1,25 @@
 // NOTE: 内容未調整
-export const WORK_ENTRIES = {
-  SS_ID: import.meta.env.VITE_SS_ID_WORK_ENTRIES,
+export const TOTALING_SHEET = {
+  SS_ID: import.meta.env.VITE_SS_ID_TOTALING_SHEET,
   SHEET_NAME: {
-    ENTRIES: 'WorkEntries'
+    EMPLOYEE_LIST: '棚卸しシートリスト',
+    WORK_ENTRIES: 'WorkEntries'
   },
   COLUMNS: {
-    DATE: 'date',
-    START_TIME: 'startTime',
-    END_TIME: 'endTime',
-    MAIN_CATEGORY: 'mainCategory',
-    SUB_CATEGORY: 'subCategory',
-    DESCRIPTION: 'description'
+    // 棚卸しシートリスト用
+    EMPLOYEE_LIST: {
+      NAME: 'A',
+      SHEET_URL: 'B'
+    },
+    // 作業時間エントリー用
+    WORK_ENTRIES: {
+      DATE: 'date',
+      START_TIME: 'startTime',
+      END_TIME: 'endTime',
+      MAIN_CATEGORY: 'mainCategory',
+      SUB_CATEGORY: 'subCategory',
+      DESCRIPTION: 'description'
+    }
   }
 } as const;
 

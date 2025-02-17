@@ -17,7 +17,7 @@ global.SpreadsheetApp = {
 };
 
 // 環境変数のモックをファイルの先頭で定義
-vi.mock('../../src/define');
+vi.mock('../../../src/define');
 
 describe('CategoryRepository', () => {
   let repository: CategoryRepository;

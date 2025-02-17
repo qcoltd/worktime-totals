@@ -94,5 +94,83 @@ describe('WorkEntryCollection', () => {
       expect(categoryTotals.get('学習')).toBe(2);
       expect(categoryTotals.get('運用')).toBe(2);
     });
+
+    describe('totalDuration', () => {
+      it('休憩時間を除外して合計時間を計算すること', () => {
+        const collection = new WorkEntryCollection();
+        
+        // 通常の作業
+        collection.add(new WorkEntry({
+          date: new Date('2024/03/01'),
+          startTime: '09:00',
+          endTime: '12:00',
+          mainCategory: 'WEB開発',
+          subCategory: 'コーディング',
+          description: 'タスク1'
+        }));
+
+        // 休憩時間
+        collection.add(new WorkEntry({
+          date: new Date('2024/03/01'),
+          startTime: '12:00',
+          endTime: '13:00',
+          mainCategory: '休憩',
+          subCategory: '休憩',
+          description: 'お昼休憩'
+        }));
+
+        // 通常の作業
+        collection.add(new WorkEntry({
+          date: new Date('2024/03/01'),
+          startTime: '13:00',
+          endTime: '17:30',
+          mainCategory: 'WEB開発',
+          subCategory: 'テスト',
+          description: 'タスク2'
+        }));
+
+        expect(collection.totalDuration()).toBe(7.5); // 3時間 + 4.5時間 = 7.5時間
+      });
+    });
+
+    describe('totalDurationByCategory', () => {
+      it('休憩時間を除外してカテゴリごとの合計時間を計算すること', () => {
+        const collection = new WorkEntryCollection();
+        
+        // WEB開発（通常作業）
+        collection.add(new WorkEntry({
+          date: new Date('2024/03/01'),
+          startTime: '09:00',
+          endTime: '12:00',
+          mainCategory: 'WEB開発',
+          subCategory: 'コーディング',
+          description: 'タスク1'
+        }));
+
+        // 休憩
+        collection.add(new WorkEntry({
+          date: new Date('2024/03/01'),
+          startTime: '12:00',
+          endTime: '13:00',
+          mainCategory: '休憩',
+          subCategory: '休憩',
+          description: 'お昼休憩'
+        }));
+
+        // WEB開発（通常作業）
+        collection.add(new WorkEntry({
+          date: new Date('2024/03/01'),
+          startTime: '13:00',
+          endTime: '17:30',
+          mainCategory: 'WEB開発',
+          subCategory: 'テスト',
+          description: 'タスク2'
+        }));
+
+        const totals = collection.totalDurationByCategory();
+        expect(totals.get('WEB開発')).toBe(7.5); // 3時間 + 4.5時間 = 7.5時間
+        expect(totals.get('休憩')).toBeUndefined(); // 休憩は含まれない
+      });
+    });
   });
 }); 

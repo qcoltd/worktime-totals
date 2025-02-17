@@ -2,14 +2,12 @@ import { dayjsLib } from '../../libs/dayjs';
 import { WorkEntry } from './WorkEntry';
 
 export class WorkEntryCollection {
-  private readonly _entries: WorkEntry[] = [];
-
-  constructor(entries: WorkEntry[] = []) {
-    this._entries = entries;
-  }
+  constructor(
+    private _entries: WorkEntry[] = []
+  ) {}
 
   get entries(): WorkEntry[] {
-    return [...this._entries]; // 配列の不変性を保持
+    return this._entries;
   }
 
   add(entry: WorkEntry): void {
@@ -25,21 +23,33 @@ export class WorkEntryCollection {
   }
 
   totalDuration(): number {
-    return this._entries.reduce(
-      (total, entry) => total + entry.calculateDuration(),
-      0
-    );
+    return this._entries
+      .filter(entry => entry.subCategory !== '休憩') // 休憩を除外
+      .reduce((total, entry) => total + this.calculateDuration(entry), 0);
   }
 
   totalDurationByCategory(): Map<string, number> {
-    const categoryTotals = new Map<string, number>();
+    const totals = new Map<string, number>();
 
-    this._entries.forEach(entry => {
-      const category = entry.mainCategory;
-      const currentTotal = categoryTotals.get(category) || 0;
-      categoryTotals.set(category, currentTotal + entry.calculateDuration());
-    });
+    this._entries
+      .filter(entry => entry.subCategory !== '休憩') // 休憩を除外
+      .forEach(entry => {
+        const current = totals.get(entry.mainCategory) || 0;
+        totals.set(entry.mainCategory, current + this.calculateDuration(entry));
+      });
 
-    return categoryTotals;
+    return totals;
+  }
+
+  private calculateDuration(entry: WorkEntry): number {
+    const [startHours, startMinutes] = entry.startTime.split(':').map(Number);
+    const [endHours, endMinutes] = entry.endTime.split(':').map(Number);
+
+    const startTotalMinutes = startHours * 60 + startMinutes;
+    const endTotalMinutes = endHours * 60 + endMinutes;
+    const durationMinutes = endTotalMinutes - startTotalMinutes;
+
+    // 時間に変換（小数点以下2桁まで）
+    return Math.round(durationMinutes / 60 * 100) / 100;
   }
 } 
