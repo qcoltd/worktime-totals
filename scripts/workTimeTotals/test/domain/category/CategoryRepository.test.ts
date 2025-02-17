@@ -1,6 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { CategoryRepository } from '../../src/infrastructure/CategoryRepository';
-import { WorktimeError, ErrorCodes } from '../../src/domain/error/WorktimeError';
+import { CategoryRepository } from '../../../src/domain/category/CategoryRepository';
 
 // SpreadsheetAppのモック
 const mockSheet = {
@@ -26,7 +25,7 @@ describe('CategoryRepository', () => {
   describe('constructor', () => {
     it('スプレッドシートIDが設定されていない場合はエラーを投げること', async () => {
       // 各テストケースでモックの実装を設定
-      vi.mocked(await import('../../src/define')).CATEGORY_MASTER = {
+      vi.mocked(await import('../../../src/define')).CATEGORY_MASTER = {
         MAIN: {
           SS_ID: null,
         },
@@ -44,7 +43,7 @@ describe('CategoryRepository', () => {
   describe('getMainCategories', () => {
     beforeEach(async () => {
       // 正常系のテスト用にモックを設定
-      vi.mocked(await import('../../src/define')).CATEGORY_MASTER = {
+      vi.mocked(await import('../../../src/define')).CATEGORY_MASTER = {
         MAIN: {
           SS_ID: 'main-spreadsheet-id',
         },
@@ -83,7 +82,7 @@ describe('CategoryRepository', () => {
   describe('getSubCategories', () => {
     beforeEach(async () => {
       // 正常系のテスト用にモックを設定
-      vi.mocked(await import('../../src/define')).CATEGORY_MASTER = {
+      vi.mocked(await import('../../../src/define')).CATEGORY_MASTER = {
         MAIN: {
           SS_ID: 'main-spreadsheet-id',
         },
