@@ -1,14 +1,16 @@
 import { WorktimeError, ErrorCodes } from '../domain/error/WorktimeError';
 
-// GAS環境とローカル環境で異なる方法でdayjsを取得
-const getDayjs = (): typeof dayjs.dayjs => {
-  return typeof dayjs !== 'undefined' ? dayjs.dayjs : require('dayjs');
-};
+class DayjsLib {
+  private getDayjs(): typeof dayjs.dayjs {
+    return typeof dayjs !== 'undefined' ? dayjs.dayjs : require('dayjs');
+  }
 
-export const dayjsLib = {
-  // 日時文字列のパース（厳密なチェック付き）
-  parse: (date: Date | string) => {
-    const dayjs = getDayjs();
+  formatDate(date: Date): string {
+    return this.getDayjs()(date).format('YYYY/MM/DD');
+  }
+
+  parse(date: Date | string) {
+    const dayjs = this.getDayjs();
     if (typeof date === 'string') {
       // YYYY/MM/DD形式の文字列を厳密にパース
       const [year, month, day] = date.split('/').map(Number);
@@ -39,11 +41,11 @@ export const dayjsLib = {
     }
 
     return dayjs(date);
-  },
+  }
 
   // 時間差の計算（時間単位）
-  diffHours: (start: string, end: string, baseDate: Date) => {
-    const dayjs = getDayjs();
+  diffHours(start: string, end: string, baseDate: Date) {
+    const dayjs = this.getDayjs();
     const baseDateStr = dayjs(baseDate).format('YYYY-MM-DD');
     let startTime = dayjs(`${baseDateStr} ${start}`);
     let endTime = dayjs(`${baseDateStr} ${end}`);
@@ -53,10 +55,7 @@ export const dayjsLib = {
     }
 
     return endTime.diff(startTime, 'hour', true);
-  },
-
-  // 日付のフォーマット
-  formatDate: (date: Date, format = 'YYYY/MM/DD') => {
-    return getDayjs()(date).format(format);
   }
-}; 
+}
+
+export const dayjsLib = new DayjsLib(); 
