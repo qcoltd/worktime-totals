@@ -8,6 +8,7 @@ export interface SpreadsheetAdapterInterface {
   writeWorkEntries(entries: WorkEntryCollection): void;
   setSheetName(sheetName: string): void;
   getColumnValues(column: string): any[];
+  getSheetNames(): string[];
 }
 
 export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
@@ -26,23 +27,25 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
         );
       }
 
-      const [headers, ...rows] = sheet.getDataRange().getValues();
-      if (!this.validateHeaders(headers)) {
-        throw new WorktimeError(
-          'Invalid sheet format: Required columns are missing',
-          ErrorCodes.INVALID_SHEET_FORMAT,
-          { headers }
-        );
-      }
+      const dataRange = sheet.getRange('I3:N');
+      const rows = dataRange.getValues();
+
+      const headers = [
+        'date', 'startTime', 'endTime',
+        'mainCategory', 'subCategory', 'description'
+      ];
 
       const collection = new WorkEntryCollection();
       rows.forEach((row, index) => {
+        if (!row[0] && !row[1] && !row[2]) return;
+
         try {
+          console.log('row', row);
           const entry = this.createWorkEntryFromRow(row, headers);
           collection.add(entry);
         } catch (error) {
           throw new WorktimeError(
-            `Failed to parse row ${index + 2}`,
+            `Failed to parse row ${index + 3}`,
             ErrorCodes.INVALID_SHEET_FORMAT,
             { row, error }
           );
@@ -65,7 +68,10 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
   writeWorkEntries(entries: WorkEntryCollection): void {
     const sheet = SpreadsheetApp.openById(this.spreadsheetId).getSheetByName(this.sheetName);
     if (!sheet) {
-      throw new Error(`Sheet not found: ${this.sheetName}`);
+      throw new WorktimeError(
+        `Sheet not found: ${this.sheetName}`,
+        ErrorCodes.SHEET_NOT_FOUND
+      );
     }
 
     const headers = [
@@ -82,30 +88,42 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
       entry.description
     ]);
 
-    sheet.clearContents();
+    sheet.clear();
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
     if (rows.length > 0) {
       sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
     }
   }
 
+  // TODO: any型を解決する
   private createWorkEntryFromRow(row: any[], headers: string[]): WorkEntry {
-    const getColumnValue = (columnName: string) => {
-      const index = headers.indexOf(columnName);
-      return index >= 0 ? row[index] : null;
-    };
-
     try {
-      const dateValue = getColumnValue('date');
-      const parsedDate = dayjsLib.parse(dateValue).toDate();
+      const dateValue = row[0];
+      let parsedDate: Date;
+      if (typeof dateValue === 'string') {
+        parsedDate = dayjsLib.parse(dateValue).toDate();
+      } else if (dateValue instanceof Date) {
+        parsedDate = dateValue;
+      } else {
+        throw new Error('Invalid date format');
+      }
+
+      const formatTime = (date: Date): string => {
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        return `${hours}:${minutes}`;
+      };
+
+      const startTime = row[1] instanceof Date ? formatTime(row[1]) : row[1]?.toString() || '';
+      const endTime = row[2] instanceof Date ? formatTime(row[2]) : row[2]?.toString() || '';
 
       return new WorkEntry({
         date: parsedDate,
-        startTime: getColumnValue('startTime'),
-        endTime: getColumnValue('endTime'),
-        mainCategory: getColumnValue('mainCategory'),
-        subCategory: getColumnValue('subCategory'),
-        description: getColumnValue('description')
+        startTime,
+        endTime,
+        mainCategory: row[3]?.toString() || '',
+        subCategory: row[4]?.toString() || '',
+        description: row[5]?.toString() || ''
       });
     } catch (error) {
       if (error instanceof WorktimeError) {
@@ -117,14 +135,6 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
         { error }
       );
     }
-  }
-
-  private validateHeaders(headers: unknown[]): boolean {
-    const requiredColumns = [
-      'date', 'startTime', 'endTime',
-      'mainCategory', 'subCategory', 'description'
-    ];
-    return requiredColumns.every(col => headers.includes(col));
   }
 
   setSheetName(sheetName: string): void {
@@ -147,21 +157,49 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
         );
       }
 
-      const sheet = spreadsheet.getSheetByName(this.sheetName);
-      if (!sheet) {
-        throw new WorktimeError(
-          `Sheet not found: ${this.sheetName}`,
-          ErrorCodes.SHEET_NOT_FOUND
-        );
+      if (this.sheetName) {
+        const sheet = spreadsheet.getSheetByName(this.sheetName);
+        if (!sheet) {
+          throw new WorktimeError(
+            `Sheet not found: ${this.sheetName}`,
+            ErrorCodes.SHEET_NOT_FOUND
+          );
+        }
+        return sheet;
       }
-      return sheet;
+
+      throw new WorktimeError(
+        'Sheet name is required for this operation',
+        ErrorCodes.SHEET_NOT_FOUND
+      );
     } catch (error) {
       if (error instanceof WorktimeError) {
         throw error;
       }
-      // SpreadsheetApp.openByIdが例外を投げた場合
       throw new WorktimeError(
         'Failed to access spreadsheet',
+        ErrorCodes.SHEET_ACCESS_ERROR,
+        error
+      );
+    }
+  }
+
+  getSheetNames(): string[] {
+    try {
+      const spreadsheet = SpreadsheetApp.openById(this.spreadsheetId);
+      if (!spreadsheet) {
+        throw new WorktimeError(
+          'Failed to get spreadsheet',
+          ErrorCodes.SHEET_ACCESS_ERROR
+        );
+      }
+      return spreadsheet.getSheets().map(sheet => sheet.getName());
+    } catch (error) {
+      if (error instanceof WorktimeError) {
+        throw error;
+      }
+      throw new WorktimeError(
+        'Failed to get sheet names',
         ErrorCodes.SHEET_ACCESS_ERROR,
         error
       );
