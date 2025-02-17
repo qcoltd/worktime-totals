@@ -56,7 +56,7 @@ export const dayjsLib = {
   },
 
   // 日付のフォーマット
-  formatDate: (date: Date, format = 'YYYY-MM-DD') => {
+  formatDate: (date: Date, format = 'YYYY/MM/DD') => {
     return getDayjs()(date).format(format);
   }
 }; 

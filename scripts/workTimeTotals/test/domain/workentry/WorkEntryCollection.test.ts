@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { WorkEntry } from '../../../src/domain/workEntry/WorkEntry';
 import { WorkEntryCollection } from '../../../src/domain/workEntry/WorkEntryCollection';
+import { dayjsLib } from '../../../src/libs/dayjs';
 
 describe('WorkEntryCollection', () => {
   describe('基本機能', () => {
@@ -171,6 +172,83 @@ describe('WorkEntryCollection', () => {
         expect(totals.get('WEB開発')).toBe(7.5); // 3時間 + 4.5時間 = 7.5時間
         expect(totals.get('休憩')).toBeUndefined(); // 休憩は含まれない
       });
+    });
+  });
+
+  describe('残業時間計算', () => {
+    it('1日の所定労働時間を超えた分を残業として計算できること', () => {
+      const collection = new WorkEntryCollection();
+      
+      // 9時間の作業（1時間の残業）
+      collection.add(new WorkEntry({
+        date: new Date('2024/03/01'),
+        startTime: '09:00',
+        endTime: '18:00',
+        mainCategory: 'WEB開発',
+        subCategory: 'コーディング',
+        description: 'タスク1'
+      }));
+
+      expect(collection.totalOvertimeHours()).toBe(1);
+    });
+
+    it('休憩時間は残業時間から除外されること', () => {
+      const collection = new WorkEntryCollection();
+      
+      // 9時間の作業（1時間の残業）
+      collection.add(new WorkEntry({
+        date: new Date('2024/03/01'),
+        startTime: '09:00',
+        endTime: '18:00',
+        mainCategory: 'WEB開発',
+        subCategory: 'コーディング',
+        description: 'タスク1'
+      }));
+
+      // 1時間の休憩
+      collection.add(new WorkEntry({
+        date: new Date('2024/03/01'),
+        startTime: '12:00',
+        endTime: '13:00',
+        mainCategory: '休憩',
+        subCategory: '休憩',
+        description: 'お昼休憩'
+      }));
+
+      expect(collection.totalOvertimeHours()).toBe(1);
+    });
+
+    it('日付ごとの残業時間を取得できること', () => {
+      const collection = new WorkEntryCollection();
+      
+      // 3/1: 1時間の残業
+      const date1 = new Date('2024/03/01');
+      collection.add(new WorkEntry({
+        date: date1,
+        startTime: '09:00',
+        endTime: '18:00',
+        mainCategory: 'WEB開発',
+        subCategory: 'コーディング',
+        description: 'タスク1'
+      }));
+
+      // 3/2: 2時間の残業
+      const date2 = new Date('2024/03/02');
+      collection.add(new WorkEntry({
+        date: date2,
+        startTime: '09:00',
+        endTime: '19:00',
+        mainCategory: 'WEB開発',
+        subCategory: 'テスト',
+        description: 'タスク2'
+      }));
+
+      const overtimeByDate = collection.overtimeHoursByDate();
+      const date1Str = dayjsLib.formatDate(date1);
+      const date2Str = dayjsLib.formatDate(date2);
+
+      expect(overtimeByDate.get(date1Str)).toBe(1);
+      expect(overtimeByDate.get(date2Str)).toBe(2);
     });
   });
 }); 

@@ -32,3 +32,7 @@ export const CATEGORY_MASTER = {
   },
   SHEET_NAMES: ['WEB運用', 'WEB開発', 'WEB受託'] as const
 } as const;
+
+export const WORK_TIME = {
+  REGULAR_HOURS_PER_DAY: 8, // 1日の所定労働時間
+} as const;
