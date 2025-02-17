@@ -173,6 +173,35 @@ describe('WorkEntryCollection', () => {
         expect(totals.get('休憩')).toBeUndefined(); // 休憩は含まれない
       });
     });
+
+    it('日付を跨ぐ作業時間を計算できること', () => {
+      const collection = new WorkEntryCollection();
+      
+      // 19:00から翌0:00まで（5時間）
+      collection.add(new WorkEntry({
+        date: new Date('2025/02/24'),
+        startTime: '19:00',
+        endTime: '00:00',
+        mainCategory: 'その他',
+        subCategory: '予定立て・日報',
+        description: '勤怠集計 仕様の確認'
+      }));
+
+      expect(collection.totalDuration()).toBe(5);
+
+      // 19:00から翌2:00まで（7時間）
+      const collection2 = new WorkEntryCollection();
+      collection2.add(new WorkEntry({
+        date: new Date('2025/02/24'),
+        startTime: '19:00',
+        endTime: '02:00',
+        mainCategory: 'その他',
+        subCategory: '予定立て・日報',
+        description: '勤怠集計 仕様の確認'
+      }));
+
+      expect(collection2.totalDuration()).toBe(7);
+    });
   });
 
   describe('残業時間計算', () => {

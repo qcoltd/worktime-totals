@@ -50,8 +50,13 @@ export class OvertimeCalculator {
       const [startHours, startMinutes] = entry.startTime.split(':').map(Number);
       const [endHours, endMinutes] = entry.endTime.split(':').map(Number);
       
-      const startTotalMinutes = startHours * 60 + startMinutes;
-      const endTotalMinutes = endHours * 60 + endMinutes;
+      let startTotalMinutes = startHours * 60 + startMinutes;
+      let endTotalMinutes = endHours * 60 + endMinutes;
+
+      // 終了時間が開始時間より小さい場合（日付を跨いでいる場合）
+      if (endTotalMinutes < startTotalMinutes) {
+        endTotalMinutes += 24 * 60; // 24時間分を加算
+      }
       
       return total + (endTotalMinutes - startTotalMinutes);
     }, 0);

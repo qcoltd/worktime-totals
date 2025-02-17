@@ -50,6 +50,37 @@ describe('OvertimeCalculator', () => {
 
       expect(OvertimeCalculator.calculateTotal(entries)).toBe(1);
     });
+
+    it('日付を跨ぐ残業時間を計算できること', () => {
+      const entries = [
+        new WorkEntry({
+          date: new Date('2024/03/01'),
+          startTime: '19:00',
+          endTime: '02:00', // 翌日2時まで（7時間の作業）
+          mainCategory: 'WEB開発',
+          subCategory: 'コーディング',
+          description: 'タスク1'
+        })
+      ];
+
+      // 7時間の作業のうち、所定労働時間8時間を超えた分はないので残業は0時間
+      expect(OvertimeCalculator.calculateTotal(entries)).toBe(0);
+
+      // 長時間作業のケース
+      const longEntries = [
+        new WorkEntry({
+          date: new Date('2024/03/01'),
+          startTime: '09:00',
+          endTime: '02:00', // 翌日2時まで（17時間の作業）
+          mainCategory: 'WEB開発',
+          subCategory: 'コーディング',
+          description: 'タスク1'
+        })
+      ];
+
+      // 17時間の作業のうち、所定労働時間8時間を超えた9時間が残業
+      expect(OvertimeCalculator.calculateTotal(longEntries)).toBe(9);
+    });
   });
 
   describe('calculateByDate', () => {
