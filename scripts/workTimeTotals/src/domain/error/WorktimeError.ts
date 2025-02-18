@@ -21,7 +21,8 @@ export const ErrorCodes = {
   INVALID_DATE_FORMAT: 'INVALID_DATE_FORMAT',
 
   // その他
-  UNEXPECTED_ERROR: 'UNEXPECTED_ERROR'
+  UNEXPECTED_ERROR: 'UNEXPECTED_ERROR',
+  DASHBOARD_ERROR: 'DASHBOARD_ERROR',
 } as const;
 
 export type ErrorCode = typeof ErrorCodes[keyof typeof ErrorCodes]; 

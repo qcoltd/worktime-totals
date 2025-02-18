@@ -3,7 +3,8 @@ export const TOTALING_SHEET = {
   SS_ID: import.meta.env.VITE_SS_ID_TOTALING_SHEET,
   SHEET_NAME: {
     EMPLOYEE_LIST: '棚卸しシートリスト',
-    WORK_ENTRIES: 'WorkEntries'
+    WORK_ENTRIES: 'WorkEntries',
+    DASHBOARD: 'ダッシュボード'
   },
   COLUMNS: {
     // 棚卸しシートリスト用
@@ -13,12 +14,17 @@ export const TOTALING_SHEET = {
     },
     // 作業時間エントリー用
     WORK_ENTRIES: {
-      DATE: 'date',
-      START_TIME: 'startTime',
-      END_TIME: 'endTime',
-      MAIN_CATEGORY: 'mainCategory',
-      SUB_CATEGORY: 'subCategory',
-      DESCRIPTION: 'description'
+      DATE: 'A',
+      START_TIME: 'B',
+      END_TIME: 'C',
+      MAIN_CATEGORY: 'D',
+      SUB_CATEGORY: 'E',
+      DESCRIPTION: 'F'
+    },
+    DASHBOARD: {
+      START_DATE: 'A2',
+      END_DATE: 'B2',
+      PROJECTS: 'C2'
     }
   }
 } as const;
