@@ -10,11 +10,18 @@ export class OvertimeVisualizationService {
   visualize(monthlyData: MonthlyData): void {
     try {
       const spreadsheet = SpreadsheetApp.openById(this.spreadsheetId);
-      let sheet = spreadsheet.getSheetByName(monthlyData.yearMonth);
+      
+      // 現在時刻を取得してフォーマット
+      const now = new Date();
+      const timestamp = Utilities.formatDate(
+        now,
+        'Asia/Tokyo',
+        'yyyyMMddHHmm'
+      );
+      const sheetName = `集計_${timestamp}`;
 
-      if (!sheet) {
-        sheet = spreadsheet.insertSheet(monthlyData.yearMonth, 3);
-      }
+      // 新しいシートを作成
+      const sheet = spreadsheet.insertSheet(sheetName, 3);
 
       // 月次データの表を作成
       this.createMonthlyTable(sheet, monthlyData);
