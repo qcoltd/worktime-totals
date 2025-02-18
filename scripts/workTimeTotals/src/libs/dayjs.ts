@@ -5,8 +5,8 @@ class DayjsLib {
     return typeof dayjs !== 'undefined' ? dayjs.dayjs : require('dayjs');
   }
 
-  formatDate(date: Date): string {
-    return this.getDayjs()(date).format('YYYY/MM/DD');
+  formatDate(date: Date, format = 'YYYY/MM/DD'): string {
+    return this.getDayjs()(date).format(format);
   }
 
   parse(date: Date | string) {

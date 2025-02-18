@@ -15,15 +15,24 @@ interface EmployeeOvertime {
   weekly: WeeklyOvertime[];
 }
 
-interface OvertimeSummary {
+export interface OvertimeSummary {
   period: {
     startDate: string;
     endDate: string;
   };
-  employees: EmployeeOvertime[];
   total: number;
   average: number;
-  weeklyAverages: Map<number, number>; // 週番号ごとの平均
+  weeklyAverages: Map<number, number>;
+  employees: {
+    name: string;
+    total: number;
+    weekly: {
+      weekNumber: number;
+      startDate: string;
+      endDate: string;
+      hours: number;
+    }[];
+  }[];
 }
 
 export class OvertimeCalculationService {
