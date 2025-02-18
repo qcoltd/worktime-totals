@@ -1,6 +1,7 @@
 import { WorkEntry } from '../domain/workEntry/WorkEntry';
 import { CategoryCalculator } from '../domain/category/CategoryCalculator';
 import { dayjsLib } from '../libs/dayjs';
+
 interface SubCategoryTotal {
   subCategory: string;
   hours: number;
@@ -12,7 +13,7 @@ interface EmployeeSubCategoryTotals {
 }
 
 interface SubCategorySummary {
-  mainCategory: string;
+  mainCategories: string[];
   period: {
     startDate: string;
     endDate: string;
@@ -23,18 +24,18 @@ interface SubCategorySummary {
 
 export class SubCategoryTotalingService {
   /**
-   * 指定期間のサブカテゴリ別作業時間サマリーを計算
+   * 指定期間の複数メインカテゴリに対するサブカテゴリ別作業時間サマリーを計算
    */
   calculateSummary(
     employeeEntries: Map<string, WorkEntry[]>,
-    mainCategory: string,
+    mainCategories: string[],
     startDate: Date,
     endDate: Date
   ): SubCategorySummary {
     // 全体の集計
     const totalsBySubCategory = this.calculateTotalsBySubCategory(
       Array.from(employeeEntries.values()).flat(),
-      mainCategory
+      mainCategories
     );
 
     // 従業員ごとの集計
@@ -42,12 +43,12 @@ export class SubCategoryTotalingService {
     employeeEntries.forEach((entries, name) => {
       employeeTotals.push({
         name,
-        totals: this.calculateTotalsBySubCategory(entries, mainCategory)
+        totals: this.calculateTotalsBySubCategory(entries, mainCategories)
       });
     });
 
     return {
-      mainCategory,
+      mainCategories,
       period: {
         startDate: dayjsLib.formatDate(startDate),
         endDate: dayjsLib.formatDate(endDate)
@@ -59,11 +60,20 @@ export class SubCategoryTotalingService {
 
   private calculateTotalsBySubCategory(
     entries: WorkEntry[],
-    mainCategory: string
+    mainCategories: string[]
   ): SubCategoryTotal[] {
-    const totals = CategoryCalculator.calculateTotalsBySubCategory(entries, mainCategory);
+    // 各メインカテゴリの集計結果をマージ
+    const mergedTotals = new Map<string, number>();
 
-    return Array.from(totals.entries()).map(([subCategory, hours]) => ({
+    mainCategories.forEach(mainCategory => {
+      const totals = CategoryCalculator.calculateTotalsBySubCategory(entries, mainCategory);
+      totals.forEach((hours, subCategory) => {
+        const current = mergedTotals.get(subCategory) || 0;
+        mergedTotals.set(subCategory, current + hours);
+      });
+    });
+
+    return Array.from(mergedTotals.entries()).map(([subCategory, hours]) => ({
       subCategory,
       hours
     }));

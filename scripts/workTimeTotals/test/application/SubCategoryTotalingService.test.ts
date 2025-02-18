@@ -43,7 +43,7 @@ describe('SubCategoryTotalingService', () => {
 
       const summary = service.calculateSummary(
         employeeEntries,
-        'WEB開発',
+        ['WEB開発'],
         new Date('2024/03/01'),
         new Date('2024/03/31')
       );
@@ -51,7 +51,7 @@ describe('SubCategoryTotalingService', () => {
       // 期間の確認
       expect(summary.period.startDate).toBe('2024/03/01');
       expect(summary.period.endDate).toBe('2024/03/31');
-      expect(summary.mainCategory).toBe('WEB開発');
+      expect(summary.mainCategories).toEqual(['WEB開発']);
 
       // 全体の集計確認
       const coding = summary.totalsBySubCategory.find(t => t.subCategory === 'コーディング');
@@ -66,6 +66,45 @@ describe('SubCategoryTotalingService', () => {
 
       const emp2 = summary.employeeTotals.find(e => e.name === '従業員2');
       expect(emp2?.totals.find(t => t.subCategory === 'コーディング')?.hours).toBe(9);
+    });
+
+    it('複数のメインカテゴリのサブカテゴリ別作業時間を合算して計算できること', () => {
+      const employeeEntries = new Map<string, WorkEntry[]>();
+      
+      // 従業員1のエントリー
+      employeeEntries.set('従業員1', [
+        new WorkEntry({
+          date: new Date('2024/03/01'),
+          startTime: '09:00',
+          endTime: '12:00', // 3時間
+          mainCategory: 'WEB開発',
+          subCategory: 'コーディング',
+          description: 'タスク1'
+        }),
+        new WorkEntry({
+          date: new Date('2024/03/01'),
+          startTime: '13:00',
+          endTime: '17:00', // 4時間
+          mainCategory: '学習',
+          subCategory: 'コーディング',
+          description: 'タスク2'
+        })
+      ]);
+
+      const summary = service.calculateSummary(
+        employeeEntries,
+        ['WEB開発', '学習'],
+        new Date('2024/03/01'),
+        new Date('2024/03/31')
+      );
+
+      // 全体の集計確認
+      const coding = summary.totalsBySubCategory.find(t => t.subCategory === 'コーディング');
+      expect(coding?.hours).toBe(7); // WEB開発の3時間 + 学習の4時間
+
+      // 従業員ごとの集計確認
+      const emp1 = summary.employeeTotals.find(e => e.name === '従業員1');
+      expect(emp1?.totals.find(t => t.subCategory === 'コーディング')?.hours).toBe(7);
     });
   });
 }); 
