@@ -10,7 +10,6 @@ export class WorktimeCollectionService {
 
   private getDateSheetNames(spreadsheetId: string): string[] {
     const adapter = new SpreadsheetAdapter(spreadsheetId, '');
-    console.log('adapter', adapter);
     const sheetNames = adapter.getSheetNames();
     const datePattern = /^\d{8}$/;  // 8桁の数字のみ
 
@@ -27,16 +26,12 @@ export class WorktimeCollectionService {
     
     // 全従業員のシート情報を取得
     const employeeSheets = this.employeeSheetRepo.findAll();
-    console.log(employeeSheets);
 
     // 各従業員の作業時間を取得
     employeeSheets.forEach(sheet => {
       // 従業員の作業データスプレッドシートから日付シートを取得
-      console.log('sheet.spreadsheetId', sheet.spreadsheetId);
       const dateSheets = this.getDateSheetNames(sheet.spreadsheetId);
-      console.log('dateSheets', dateSheets);
       const allEntries = new WorkEntryCollection();
-      console.log('allEntries', allEntries.entries);
 
       // 各日付シートからデータを取得
       dateSheets.forEach(sheetName => {

@@ -40,7 +40,6 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
         if (!row[0] && !row[1] && !row[2]) return;
 
         try {
-          console.log('row', row);
           const entry = this.createWorkEntryFromRow(row, headers);
           collection.add(entry);
         } catch (error) {
