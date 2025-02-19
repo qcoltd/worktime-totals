@@ -4,6 +4,7 @@ import { WorktimeError, ErrorCodes } from '../../../domain/error/WorktimeError';
 import { OvertimeSummary } from '../../../application/OvertimeCalculationService';
 import { OvertimeDataAdapter } from '../adapters/OvertimeDataAdapter';
 import { OvertimeMonthlyChartComponent } from '../components/charts/overtime/OvertimeMonthlyChartComponent';
+import { OvertimeWeeklyChartComponent } from '../components/charts/overtime/OvertimeWeeklyChartComponent';
 
 export class OvertimeVisualizationService {
   constructor(
@@ -142,5 +143,14 @@ export class OvertimeVisualizationService {
 
     const table = new TableComponent(sheet, startRow, 1);
     table.render(tableData);
+
+    // テーブルの下にグラフを出力
+    const chartComponent = new OvertimeWeeklyChartComponent(sheet);
+    chartComponent.render({
+      row: startRow + 1,  // ヘッダー行の位置
+      column: 1,
+      numRows: weeklyRows.length + 1,  // ヘッダー行を含む
+      numColumns: tableData.headers.length
+    });
   }
 } 
