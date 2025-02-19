@@ -69,16 +69,16 @@ export class TableComponent {
       dataRange.setNumberFormat('#,##0.0');
 
       // データ行の日付列のみ文字列として扱う
-      const dateColumn = this.sheet.getRange(
-        range.getRow() + 2,
-        range.getColumn(),
-        range.getNumRows() - 2,
-        1
-      );
-      dateColumn.setNumberFormat('@STRING@');
+      // const dateColumn = this.sheet.getRange(
+      //   range.getRow() + 2,
+      //   range.getColumn(),
+      //   range.getNumRows() - 2,
+      //   1
+      // );
+      // dateColumn.setNumberFormat('@STRING@');
     }
     
     // 列幅の自動調整
-    this.sheet.autoResizeColumns(range.getColumn(), range.getNumColumns());
+    // this.sheet.autoResizeColumns(range.getColumn(), range.getNumColumns());
   }
 } 

@@ -3,6 +3,7 @@ import { MonthlyData } from '../types/MonthlyData';
 import { WorktimeError, ErrorCodes } from '../../../domain/error/WorktimeError';
 import { OvertimeSummary } from '../../../application/OvertimeCalculationService';
 import { OvertimeDataAdapter } from '../adapters/OvertimeDataAdapter';
+import { OvertimeMonthlyChartComponent } from '../components/OvertimeMonthlyChartComponent';
 
 export class OvertimeVisualizationService {
   constructor(
@@ -69,8 +70,18 @@ export class OvertimeVisualizationService {
 
     const table = new TableComponent(sheet, 1, 1);
     table.render(tableData);
+    const lastRow = table.getLastRow();
 
-    return table.getLastRow();
+    // テーブルの下にグラフを出力
+    const chartComponent = new OvertimeMonthlyChartComponent(sheet);
+    chartComponent.render({
+      row: 2,  // ヘッダー行の位置
+      column: 1,
+      numRows: data.length + 1,  // ヘッダー行を含む
+      numColumns: tableData.headers.length
+    });
+
+    return lastRow;
   }
 
   // 週番号から週の開始日と終了日を計算
