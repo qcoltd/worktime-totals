@@ -1,25 +1,7 @@
 import { WorkEntry } from '../domain/workEntry/WorkEntry';
 import { dayjsLib } from '../libs/dayjs';
 import { CategoryCalculator } from '../domain/category/CategoryCalculator';
-
-interface CategoryTotal {
-  category: string;
-  hours: number;
-}
-
-interface EmployeeCategoryTotals {
-  name: string;
-  totals: CategoryTotal[];
-}
-
-interface CategorySummary {
-  period: {
-    startDate: string;
-    endDate: string;
-  };
-  totalsByCategory: CategoryTotal[];
-  employeeTotals: EmployeeCategoryTotals[];
-}
+import { CategoryTotal, CategorySummary, EmployeeCategoryTotals } from '../domain/category/types';
 
 export class CategoryTotalingService {
   /**

@@ -10,36 +10,22 @@ import { OvertimeWeeklyTableComponent } from '../components/tables/overtime/Over
 
 export class OvertimeVisualizationService {
   constructor(
-    private spreadsheetId: string,
     private startDate: Date,
     private endDate: Date
   ) {}
 
-  visualize(monthlyData: OvertimeSummary[]): void {
+  visualize(monthlyData: OvertimeSummary[], sheet: GoogleAppsScript.Spreadsheet.Sheet): number {
     try {
-      const spreadsheet = SpreadsheetApp.openById(this.spreadsheetId);
-      
-      // 現在時刻を取得してフォーマット
-      const now = new Date();
-      const timestamp = Utilities.formatDate(
-        now,
-        'Asia/Tokyo',
-        'yyyyMMddHHmm'
-      );
-      const sheetName = `集計_${timestamp}`;
-
-      // 新しいシートを作成
-      const sheet = spreadsheet.insertSheet(sheetName, 3);
-
       // データをMonthlyData形式に変換してから処理
       const monthlyDataArray = OvertimeDataAdapter.toMonthlyData(monthlyData);
       
       // 月次の可視化（テーブルとグラフ）を作成し、最終行を取得
-      const lastRow = this.visualizeMonthlyOvertime(sheet, monthlyDataArray);
+      const monthlyLastRow = this.visualizeMonthlyOvertime(sheet, monthlyDataArray);
       
-      // 週次の可視化（テーブルとグラフ）を1行空けて作成
-      this.visualizeWeeklyOvertime(sheet, monthlyDataArray, lastRow + 2);
+      // 週次の可視化（テーブルとグラフ）を2行空けて作成
+      const weeklyLastRow = this.visualizeWeeklyOvertime(sheet, monthlyDataArray, monthlyLastRow + 2);
 
+      return weeklyLastRow;
     } catch (error) {
       throw new WorktimeError(
         'Failed to visualize overtime data',
@@ -73,9 +59,9 @@ export class OvertimeVisualizationService {
     sheet: GoogleAppsScript.Spreadsheet.Sheet,
     data: MonthlyData[],
     startRow: number
-  ): void {
+  ): number {
     const table = new OvertimeWeeklyTableComponent(sheet, startRow, 1, data, this.startDate, this.endDate);
-    table.renderTable();
+    const lastRow = table.renderTable();
 
     // テーブルの下にグラフを出力
     const chartComponent = new OvertimeWeeklyChartComponent(sheet);
@@ -85,5 +71,8 @@ export class OvertimeVisualizationService {
       numRows: table.rows.length + 1,
       numColumns: table.headers.length
     });
+
+    // グラフの高さを考慮した最終行を返す
+    return lastRow + chartComponent.chartHeight;
   }
 } 
