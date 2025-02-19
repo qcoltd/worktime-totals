@@ -31,7 +31,7 @@ export const TOTALING_SHEET = {
 
 export const CATEGORY_MASTER = {
   MAIN: {
-    SS_ID: import.meta.env.VITE_SS_ID_CATEGORY_MASTER,
+    SS_ID: import.meta.env.VITE_SS_ID_CATEGORY_MAIN,
   },
   SUB: {
     SS_ID: import.meta.env.VITE_SS_ID_CATEGORY_SUB,

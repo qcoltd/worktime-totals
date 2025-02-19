@@ -1,8 +1,6 @@
 import { TableComponent, TableData } from '../../base/TableComponent';
-import { CategorySummary } from '../../../../../domain/category/types';
-import { dayjsLib } from '../../../../../libs/dayjs';
-
-interface CategoryRatioData extends Pick<CategorySummary, 'period' | 'totalsByCategory'> {}
+import { CategoryRatioData } from '../../../../../domain/category/types';
+import { CategoryRepository } from '../../../../../domain/category/CategoryRepository';
 
 export class CategoryRatioTableComponent extends TableComponent {
   constructor(
@@ -15,32 +13,26 @@ export class CategoryRatioTableComponent extends TableComponent {
   }
 
   renderTable(): number {
-    const categories = this.data.totalsByCategory.map(total => total.category);
-    const total = this.data.totalsByCategory.reduce((sum, total) => sum + total.hours, 0);
-
-    // 月ごとの比率を計算
-    const monthlyRatios: (string | number)[][] = [];
-    let currentDate = new Date(this.data.period.startDate);
-    const endDate = new Date(this.data.period.endDate);
-
-    while (currentDate <= endDate) {
-      const monthlyTotal = this.data.totalsByCategory.reduce((sum, total) => sum + total.hours, 0);
-      const ratios = this.data.totalsByCategory.map(categoryTotal => {
-        return Math.round((categoryTotal.hours / monthlyTotal) * 1000) / 10; // 小数点1位まで
-      });
-
-      monthlyRatios.push([
-        dayjsLib.formatDate(currentDate, 'YYYY/MM'),
-        ...ratios
-      ]);
-
-      currentDate.setMonth(currentDate.getMonth() + 1);
-    }
+    // メインカテゴリ一覧をヘッダーとして使用
+    const categoryRepo = new CategoryRepository();
+    const categories = categoryRepo.mainCategories;
 
     const tableData: TableData = {
       title: '全体の業務比率',
       headers: ['日付', ...categories],
-      rows: monthlyRatios
+      rows: this.data.monthlySummaries.map(monthly => {
+        const total = monthly.totalsByCategory.reduce((sum, t) => sum + t.hours, 0);
+        
+        // 各メインカテゴリの比率を計算（データがない場合は0%）
+        const ratios = categories.map(category => {
+          const categoryData = monthly.totalsByCategory.find(t => t.category === category);
+          return categoryData 
+            ? Math.round((categoryData.hours / total) * 1000) / 10
+            : 0;
+        });
+
+        return [monthly.month, ...ratios];
+      })
     };
 
     this.renderData(tableData);

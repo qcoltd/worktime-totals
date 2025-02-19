@@ -3,8 +3,8 @@ import { CATEGORY_MASTER } from "../../define";
 import { SpreadsheetAdapter } from "../../infrastructure/SpreadsheetAdapter";
 
 export interface CategoryRepositoryInterface {
-  getMainCategories(): string[];
-  getSubCategories(): string[];
+  get mainCategories(): string[];
+  get subCategories(): string[];
 }
 
 export class CategoryRepository implements CategoryRepositoryInterface {
@@ -26,11 +26,11 @@ export class CategoryRepository implements CategoryRepositoryInterface {
     );
   }
 
-  getMainCategories(): string[] {
+  get mainCategories(): string[] {
     return this.getUniqueCategories(this.mainAdapter);
   }
 
-  getSubCategories(): string[] {
+  get subCategories(): string[] {
     return this.getUniqueCategories(this.subAdapter);
   }
 

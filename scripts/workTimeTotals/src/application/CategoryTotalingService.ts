@@ -14,14 +14,24 @@ export class CategoryTotalingService {
     const startDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
     const endDate = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0);
 
+    // 対象月のエントリーのみをフィルタリング
+    const filteredEntries = new Map<string, WorkEntry[]>();
+    employeeEntries.forEach((entries, name) => {
+      const monthlyEntries = entries.filter(entry => {
+        const entryDate = new Date(entry.date);
+        return entryDate >= startDate && entryDate <= endDate;
+      });
+      filteredEntries.set(name, monthlyEntries);
+    });
+
     // 全体の集計
     const totalsByCategory = this.calculateTotalsByCategory(
-      Array.from(employeeEntries.values()).flat()
+      Array.from(filteredEntries.values()).flat()
     );
 
     // 従業員ごとの集計
     const employeeTotals: EmployeeCategoryTotals[] = [];
-    employeeEntries.forEach((entries, name) => {
+    filteredEntries.forEach((entries, name) => {
       employeeTotals.push({
         name,
         totals: this.calculateTotalsByCategory(entries)

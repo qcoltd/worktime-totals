@@ -15,4 +15,17 @@ export interface CategorySummary {
   };
   totalsByCategory: CategoryTotal[];
   employeeTotals: EmployeeCategoryTotals[];
+}
+
+export interface MonthlyCategorySummary {
+  month: string;  // YYYY/MM形式
+  totalsByCategory: CategoryTotal[];
+}
+
+export interface CategoryRatioData {
+  period: {
+    startDate: string;
+    endDate: string;
+  };
+  monthlySummaries: MonthlyCategorySummary[];
 } 

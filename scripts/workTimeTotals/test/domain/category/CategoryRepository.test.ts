@@ -70,7 +70,7 @@ describe('CategoryRepository', () => {
       mockSheet.getRange.mockReturnValue({ getValues: () => mockValues });
       mockSpreadsheet.getSheetByName.mockReturnValue(mockSheet);
 
-      const categories = repository.getMainCategories();
+      const categories = repository.mainCategories;
 
       expect(categories).toEqual(['カテゴリA', 'カテゴリB', 'カテゴリC']);
       expect(SpreadsheetApp.openById).toHaveBeenCalledWith('main-spreadsheet-id');
@@ -109,7 +109,7 @@ describe('CategoryRepository', () => {
       mockSheet.getRange.mockReturnValue({ getValues: () => mockValues });
       mockSpreadsheet.getSheetByName.mockReturnValue(mockSheet);
 
-      const categories = repository.getSubCategories();
+      const categories = repository.subCategories;
 
       expect(categories).toEqual(['コードレビュー', 'テスト実装', '開発環境構築']); // アルファベット順
       expect(SpreadsheetApp.openById).toHaveBeenCalledWith('sub-spreadsheet-id');
@@ -134,7 +134,7 @@ describe('CategoryRepository', () => {
         getValues: () => mockSheetData[currentSheetName] || []
       });
 
-      const categories = repository.getSubCategories();
+      const categories = repository.subCategories;
 
       expect(categories).toEqual([
         '受託A', '受託B',
