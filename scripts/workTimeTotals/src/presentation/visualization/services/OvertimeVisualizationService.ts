@@ -81,7 +81,8 @@ export class OvertimeVisualizationService {
       numColumns: tableData.headers.length
     });
 
-    return lastRow;
+    // グラフの高さを考慮した最終行を返す
+    return lastRow + chartComponent.chartHeight;
   }
 
   // 週番号から週の開始日と終了日を計算
