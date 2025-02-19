@@ -1,7 +1,7 @@
 import { WorkEntry } from '../domain/workEntry/WorkEntry';
 import { WorkEntryCollection } from '../domain/workEntry/WorkEntryCollection';
 import { WorktimeError, ErrorCodes } from '../domain/error/WorktimeError';
-import {dayjsLib} from '../libs/dayjs';
+import { dayjsLib } from '../libs/dayjs';
 
 export interface SpreadsheetAdapterInterface {
   readWorkEntries(): WorkEntryCollection;

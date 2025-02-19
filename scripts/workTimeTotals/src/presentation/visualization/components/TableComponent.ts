@@ -5,6 +5,8 @@ export interface TableData {
 }
 
 export class TableComponent {
+  private lastRow: number = 0;
+
   constructor(
     private sheet: GoogleAppsScript.Spreadsheet.Sheet,
     private startRow: number,
@@ -12,26 +14,24 @@ export class TableComponent {
   ) {}
 
   render(data: TableData): void {
-    // タイトル
+    // タイトル行を出力
     this.sheet.getRange(this.startRow, this.startColumn).setValue(data.title);
+    
+    // ヘッダー行を出力
+    this.sheet.getRange(this.startRow + 1, this.startColumn, 1, data.headers.length)
+      .setValues([data.headers]);
 
-    // ヘッダー
-    this.sheet.getRange(
-      this.startRow + 1,
-      this.startColumn,
-      1,
-      data.headers.length
-    ).setValues([data.headers]);
-
-    // データ行
+    // データ行を出力
     if (data.rows.length > 0) {
       this.sheet.getRange(
         this.startRow + 2,
         this.startColumn,
         data.rows.length,
-        data.rows[0].length
+        data.headers.length
       ).setValues(data.rows);
     }
+
+    this.lastRow = this.startRow + data.rows.length + 1;  // 最終行を記録
 
     // 書式設定
     const dataRange = this.sheet.getRange(
@@ -41,6 +41,10 @@ export class TableComponent {
       data.headers.length
     );
     this.applyFormat(dataRange);
+  }
+
+  getLastRow(): number {
+    return this.lastRow;
   }
 
   private applyFormat(range: GoogleAppsScript.Spreadsheet.Range): void {
