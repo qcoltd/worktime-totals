@@ -1,9 +1,9 @@
-import { TableComponent, TableData } from '../components/TableComponent';
+import { TableComponent, TableData } from '../components/base/TableComponent';
 import { MonthlyData } from '../types/MonthlyData';
 import { WorktimeError, ErrorCodes } from '../../../domain/error/WorktimeError';
 import { OvertimeSummary } from '../../../application/OvertimeCalculationService';
 import { OvertimeDataAdapter } from '../adapters/OvertimeDataAdapter';
-import { OvertimeMonthlyChartComponent } from '../components/OvertimeMonthlyChartComponent';
+import { OvertimeMonthlyChartComponent } from '../components/charts/overtime/OvertimeMonthlyChartComponent';
 
 export class OvertimeVisualizationService {
   constructor(
