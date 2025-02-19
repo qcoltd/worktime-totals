@@ -4,16 +4,24 @@ export interface TableData {
   rows: (string | number)[][];
 }
 
-export class TableComponent {
-  private lastRow: number = 0;
+export abstract class TableComponent {
+  protected lastRow: number = 0;
+  protected _headers: string[] = [];
+  protected _rows: (string | number)[][] = [];
 
   constructor(
-    private sheet: GoogleAppsScript.Spreadsheet.Sheet,
-    private startRow: number,
-    private startColumn: number
+    protected sheet: GoogleAppsScript.Spreadsheet.Sheet,
+    protected startRow: number,
+    protected startColumn: number
   ) {}
 
-  render(data: TableData): void {
+  abstract renderTable(): number;
+
+  protected renderData(data: TableData): void {
+    // データを保存
+    this._headers = data.headers;
+    this._rows = data.rows;
+
     // タイトル行を出力
     this.sheet.getRange(this.startRow, this.startColumn).setValue(data.title);
     
@@ -31,7 +39,7 @@ export class TableComponent {
       ).setValues(data.rows);
     }
 
-    this.lastRow = this.startRow + data.rows.length + 1;  // 最終行を記録
+    this.lastRow = this.startRow + data.rows.length + 1;
 
     // 書式設定
     const dataRange = this.sheet.getRange(
@@ -41,6 +49,14 @@ export class TableComponent {
       data.headers.length
     );
     this.applyFormat(dataRange);
+  }
+
+  get headers(): string[] {
+    return this._headers;
+  }
+
+  get rows(): (string | number)[][] {
+    return this._rows;
   }
 
   getLastRow(): number {

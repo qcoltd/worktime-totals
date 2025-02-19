@@ -5,6 +5,8 @@ import { OvertimeSummary } from '../../../application/OvertimeCalculationService
 import { OvertimeDataAdapter } from '../adapters/OvertimeDataAdapter';
 import { OvertimeMonthlyChartComponent } from '../components/charts/overtime/OvertimeMonthlyChartComponent';
 import { OvertimeWeeklyChartComponent } from '../components/charts/overtime/OvertimeWeeklyChartComponent';
+import { OvertimeMonthlyTableComponent } from '../components/tables/overtime/OvertimeMonthlyTableComponent';
+import { OvertimeWeeklyTableComponent } from '../components/tables/overtime/OvertimeWeeklyTableComponent';
 
 export class OvertimeVisualizationService {
   constructor(
@@ -32,11 +34,11 @@ export class OvertimeVisualizationService {
       // データをMonthlyData形式に変換してから処理
       const monthlyDataArray = OvertimeDataAdapter.toMonthlyData(monthlyData);
       
-      // 月次テーブルを作成し、最終行を取得
-      const lastRow = this.createMonthlyTable(sheet, monthlyDataArray);
+      // 月次の可視化（テーブルとグラフ）を作成し、最終行を取得
+      const lastRow = this.visualizeMonthlyOvertime(sheet, monthlyDataArray);
       
-      // 週次テーブルを1行空けて作成
-      this.createWeeklyTable(sheet, monthlyDataArray, lastRow + 2);
+      // 週次の可視化（テーブルとグラフ）を1行空けて作成
+      this.visualizeWeeklyOvertime(sheet, monthlyDataArray, lastRow + 2);
 
     } catch (error) {
       throw new WorktimeError(
@@ -47,110 +49,41 @@ export class OvertimeVisualizationService {
     }
   }
 
-  private createMonthlyTable(
+  private visualizeMonthlyOvertime(
     sheet: GoogleAppsScript.Spreadsheet.Sheet,
     data: MonthlyData[]
   ): number {
-    // 全ての月で共通の従業員名リストを作成
-    const employeeNames = Array.from(
-      new Set(data.flatMap(month => 
-        Array.from(month.monthly.employeeHours.keys())
-      ))
-    );
-    
-    const tableData: TableData = {
-      title: '残業時間 (月)',
-      headers: ['日付', ...employeeNames, '平均', '合計'],
-      rows: data.map(month => [
-        month.monthly.date,
-        ...employeeNames.map(name => month.monthly.employeeHours.get(name) || 0),
-        month.monthly.average,
-        month.monthly.total
-      ])
-    };
-
-    const table = new TableComponent(sheet, 1, 1);
-    table.render(tableData);
-    const lastRow = table.getLastRow();
+    const table = new OvertimeMonthlyTableComponent(sheet, 1, 1, data);
+    const lastRow = table.renderTable();
 
     // テーブルの下にグラフを出力
     const chartComponent = new OvertimeMonthlyChartComponent(sheet);
     chartComponent.render({
-      row: 2,  // ヘッダー行の位置
+      row: 2,
       column: 1,
-      numRows: data.length + 1,  // ヘッダー行を含む
-      numColumns: tableData.headers.length
+      numRows: data.length + 1,
+      numColumns: table.headers.length
     });
 
     // グラフの高さを考慮した最終行を返す
     return lastRow + chartComponent.chartHeight;
   }
 
-  // 週番号から週の開始日と終了日を計算
-  private getWeekDates(yearMonth: string, weekNum: number): { start: Date; end: Date } {
-    const [year, month] = yearMonth.split('/').map(Number);
-    const firstDay = new Date(year, month - 1, 1);
-    
-    // 月初めの日が属する週の日曜日を見つける
-    const firstSunday = new Date(firstDay);
-    while (firstSunday.getDay() !== 0) {  // 0は日曜日
-      firstSunday.setDate(firstSunday.getDate() - 1);
-    }
-
-    // 該当週の開始日を計算
-    const weekStart = new Date(firstSunday);
-    weekStart.setDate(weekStart.getDate() + (weekNum - 1) * 7);
-
-    // 該当週の終了日を計算
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekEnd.getDate() + 6);  // 土曜日まで
-
-    return { start: weekStart, end: weekEnd };
-  }
-
-  private createWeeklyTable(
+  private visualizeWeeklyOvertime(
     sheet: GoogleAppsScript.Spreadsheet.Sheet,
     data: MonthlyData[],
     startRow: number
   ): void {
-    const employeeNames = Array.from(
-      new Set(data.flatMap(month => 
-        Array.from(month.monthly.employeeHours.keys())
-      ))
-    );
-    
-    // 期間内の週データのみをフィルタリング
-    const weeklyRows = data.flatMap(month => 
-      month.weekly.filter(week => {
-        const [yearMonth, weekNum] = week.date.split('-');
-        const { start: weekStart, end: weekEnd } = this.getWeekDates(yearMonth, parseInt(weekNum));
-
-        // 週の開始日または終了日が集計期間内にあるかチェック
-        return (weekStart <= this.endDate && weekEnd >= this.startDate);
-      }).map(week => [
-        week.date,
-        ...employeeNames.map(name => week.employeeHours.get(name) || 0),
-        week.average,
-        week.total
-      ])
-    );
-
-    const tableData: TableData = {
-      title: '残業時間 (週)',
-      headers: ['日付', ...employeeNames, '平均', '合計'],
-      rows: weeklyRows
-    };
-
-    const table = new TableComponent(sheet, startRow, 1);
-    table.render(tableData);
+    const table = new OvertimeWeeklyTableComponent(sheet, startRow, 1, data, this.startDate, this.endDate);
+    table.renderTable();
 
     // テーブルの下にグラフを出力
     const chartComponent = new OvertimeWeeklyChartComponent(sheet);
     chartComponent.render({
       row: startRow + 1,  // ヘッダー行の位置
       column: 1,
-      numRows: weeklyRows.length + 1,  // ヘッダー行を含む
-      numColumns: tableData.headers.length
+      numRows: table.rows.length + 1,
+      numColumns: table.headers.length
     });
   }
 } 
