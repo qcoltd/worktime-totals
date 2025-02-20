@@ -19,7 +19,11 @@ export interface CategorySummary {
 
 export interface MonthlyCategorySummary {
   month: string;  // YYYY/MM形式
-  totalsByCategory: CategoryTotal[];
+  totalsByCategory: Array<{ category: string; hours: number }>;
+  employeeTotals: Array<{
+    name: string;
+    totals: Array<{ category: string; hours: number }>;
+  }>;
 }
 
 export interface CategoryRatioData {

@@ -5,66 +5,106 @@ import { CategoryRatioTableComponent } from '../components/tables/category/Categ
 import { dayjsLib } from '../../../libs/dayjs';
 import { MonthlyCategorySummary, CategoryRatioData } from '../../../domain/category/types';
 import { CategoryRatioChartComponent } from '../components/charts/category/CategoryRatioChartComponent';
+import { CategoryEmployeeRatioTableComponent } from '../components/tables/category/CategoryEmployeeRatioTableComponent';
 
 export class CategoryVisualizationService {
   constructor(
     private startDate: Date,
     private endDate: Date,
-    private categoryTotalingService: CategoryTotalingService
+    private categoryTotalingService: CategoryTotalingService,
   ) {}
 
-  visualize(entriesForOvertime: Map<string, WorkEntry[]>, sheet: GoogleAppsScript.Spreadsheet.Sheet, startRow: number): void {
+  visualize(
+    entriesForOvertime: Map<string, WorkEntry[]>,
+    sheet: GoogleAppsScript.Spreadsheet.Sheet,
+    startRow: number,
+  ): void {
     try {
-      // 月ごとの集計データを作成
-      const monthlySummaries: MonthlyCategorySummary[] = [];
-      const startDate = new Date(this.startDate);
-      const endDate = new Date(this.endDate);
+      // 全体の業務比率の月次データを作成
+      const ratioData = this.createRatioData(entriesForOvertime);
 
-      while (startDate <= endDate) {
-        const summary = this.categoryTotalingService.calculateMonthlySummary(
-          entriesForOvertime,
-          startDate
-        );
+      // 全体の業務比率の月次データの可視化（テーブルとグラフ）を作成し、最終行を取得
+      const totalRatioLastRow = this.visualizeTotalRatio(sheet, ratioData, startRow);
 
-        monthlySummaries.push({
-          month: dayjsLib.formatDate(startDate, 'YYYY/MM'),
-          totalsByCategory: summary.totalsByCategory
-        });
-
-        startDate.setMonth(startDate.getMonth() + 1);
-      }
-
-      const ratioData: CategoryRatioData = {
-        period: {
-          startDate: dayjsLib.formatDate(this.startDate),
-          endDate: dayjsLib.formatDate(endDate)
-        },
-        monthlySummaries
-      };
-
-      // テーブルの出力
-      const ratioTable = new CategoryRatioTableComponent(sheet, startRow, 1, ratioData);
-      const lastRow = ratioTable.renderTable();
-
-      // 月ごとに円グラフを出力
-      const chartComponent = new CategoryRatioChartComponent(sheet);
-      ratioData.monthlySummaries.forEach((monthly, index) => {
-        chartComponent.render({
-          row: startRow + 1,
-          column: 1,
-          numRows: ratioTable.rows.length,
-          numColumns: ratioTable.headers.length,
-          month: monthly.month,
-          index,
-        });
-      });
-
+      // 従業員別の業務比率の可視化（テーブル）を作成
+      this.visualizeEmployeeRatio(sheet, ratioData, totalRatioLastRow);
     } catch (error) {
-      throw new WorktimeError(
-        'Failed to visualize category data',
-        ErrorCodes.SHEET_ACCESS_ERROR,
-        { error }
-      );
+      throw new WorktimeError('Failed to visualize category data', ErrorCodes.SHEET_ACCESS_ERROR, {
+        error,
+      });
     }
   }
-} 
+
+  private createRatioData(entriesForOvertime: Map<string, WorkEntry[]>): CategoryRatioData {
+    const monthlySummaries: MonthlyCategorySummary[] = [];
+    const startDate = new Date(this.startDate);
+    const endDate = new Date(this.endDate);
+
+    while (startDate <= endDate) {
+      const summary = this.categoryTotalingService.calculateMonthlySummary(
+        entriesForOvertime,
+        startDate,
+      );
+
+      monthlySummaries.push({
+        month: dayjsLib.formatDate(startDate, 'YYYY/MM'),
+        totalsByCategory: summary.totalsByCategory,
+        employeeTotals: summary.employeeTotals,
+      });
+
+      startDate.setMonth(startDate.getMonth() + 1);
+    }
+
+    return {
+      period: {
+        startDate: dayjsLib.formatDate(this.startDate),
+        endDate: dayjsLib.formatDate(endDate),
+      },
+      monthlySummaries,
+    };
+  }
+
+  private visualizeTotalRatio(
+    sheet: GoogleAppsScript.Spreadsheet.Sheet,
+    ratioData: CategoryRatioData,
+    startRow: number,
+  ): number {
+    // テーブルの出力
+    const ratioTable = new CategoryRatioTableComponent(sheet, startRow, 1, ratioData);
+    const lastRow = ratioTable.renderTable();
+
+    const chartComponent = new CategoryRatioChartComponent(sheet);
+    ratioData.monthlySummaries.forEach((monthly, index) => {
+      chartComponent.render({
+        row: startRow + 1,
+        column: 1,
+        numRows: ratioTable.rows.length,
+        numColumns: ratioTable.headers.length,
+        month: monthly.month,
+        index,
+      });
+    });
+
+    // グラフの高さを考慮した最終行を返す
+    return lastRow + chartComponent.chartHeight;
+  }
+
+  private visualizeEmployeeRatio(
+    sheet: GoogleAppsScript.Spreadsheet.Sheet,
+    ratioData: CategoryRatioData,
+    startRow: number,
+  ): void {
+    let currentRow = startRow;
+
+    ratioData.monthlySummaries.forEach((monthly) => {
+      const employeeTable = new CategoryEmployeeRatioTableComponent(
+        sheet,
+        currentRow + 1, // 1行空けて配置
+        1,
+        ratioData,
+        monthly.month,
+      );
+      currentRow = employeeTable.renderTable();
+    });
+  }
+}
