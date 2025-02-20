@@ -4,6 +4,7 @@ import { CategoryTotalingService } from '../../../application/CategoryTotalingSe
 import { CategoryRatioTableComponent } from '../components/tables/category/CategoryRatioTableComponent';
 import { dayjsLib } from '../../../libs/dayjs';
 import { MonthlyCategorySummary, CategoryRatioData } from '../../../domain/category/types';
+import { CategoryRatioChartComponent } from '../components/charts/category/CategoryRatioChartComponent';
 
 export class CategoryVisualizationService {
   constructor(
@@ -43,7 +44,21 @@ export class CategoryVisualizationService {
 
       // テーブルの出力
       const ratioTable = new CategoryRatioTableComponent(sheet, startRow, 1, ratioData);
-      ratioTable.renderTable();
+      const lastRow = ratioTable.renderTable();
+
+      // 月ごとに円グラフを出力
+      const chartComponent = new CategoryRatioChartComponent(sheet);
+      ratioData.monthlySummaries.forEach((monthly, index) => {
+        chartComponent.render({
+          row: startRow + 1,
+          column: 1,
+          numRows: ratioTable.rows.length,
+          numColumns: ratioTable.headers.length,
+          month: monthly.month,
+          index,
+        });
+      });
+
     } catch (error) {
       throw new WorktimeError(
         'Failed to visualize category data',
