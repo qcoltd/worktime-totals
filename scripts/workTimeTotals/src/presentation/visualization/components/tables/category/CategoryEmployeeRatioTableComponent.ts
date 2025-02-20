@@ -1,4 +1,4 @@
-import { TableComponent } from '../../base/TableComponent';
+import { TableComponent, TableData } from '../../base/TableComponent';
 import { CategoryRatioData } from '../../../../../domain/category/types';
 import { CategoryRepository } from '../../../../../domain/category/CategoryRepository';
 
@@ -53,6 +53,14 @@ export class CategoryEmployeeRatioTableComponent extends TableComponent {
       );
       dataRange.setValues(employeeData);
     }
+
+    const tableData: TableData = {
+      title: '個別業務比率',
+      headers: ['従業員名', ...categories],
+      rows: employeeData
+    };
+
+    this.renderData(tableData);
 
     // 最終行を返す
     return this.startRow + 2 + employeeData.length;

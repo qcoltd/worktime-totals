@@ -6,6 +6,7 @@ import { dayjsLib } from '../../../libs/dayjs';
 import { MonthlyCategorySummary, CategoryRatioData } from '../../../domain/category/types';
 import { CategoryRatioChartComponent } from '../components/charts/category/CategoryRatioChartComponent';
 import { CategoryEmployeeRatioTableComponent } from '../components/tables/category/CategoryEmployeeRatioTableComponent';
+import { CategoryEmployeeRatioChartComponent } from '../components/charts/category/CategoryEmployeeRatioChartComponent';
 
 export class CategoryVisualizationService {
   constructor(
@@ -26,8 +27,8 @@ export class CategoryVisualizationService {
       // 全体の業務比率の月次データの可視化（テーブルとグラフ）を作成し、最終行を取得
       const totalRatioLastRow = this.visualizeTotalRatio(sheet, ratioData, startRow);
 
-      // 従業員別の業務比率の可視化（テーブル）を作成
-      this.visualizeEmployeeRatio(sheet, ratioData, totalRatioLastRow);
+      // 従業員別の業務比率の可視化（テーブル）を1行空けて作成
+      this.visualizeEmployeeRatio(sheet, ratioData, totalRatioLastRow + 1);
     } catch (error) {
       throw new WorktimeError('Failed to visualize category data', ErrorCodes.SHEET_ACCESS_ERROR, {
         error,
@@ -71,7 +72,7 @@ export class CategoryVisualizationService {
   ): number {
     // テーブルの出力
     const ratioTable = new CategoryRatioTableComponent(sheet, startRow, 1, ratioData);
-    const lastRow = ratioTable.renderTable();
+    const tableLastRow = ratioTable.renderTable();
 
     const chartComponent = new CategoryRatioChartComponent(sheet);
     ratioData.monthlySummaries.forEach((monthly, index) => {
@@ -86,7 +87,7 @@ export class CategoryVisualizationService {
     });
 
     // グラフの高さを考慮した最終行を返す
-    return lastRow + chartComponent.chartHeight;
+    return tableLastRow + chartComponent.chartHeight;
   }
 
   private visualizeEmployeeRatio(
@@ -95,16 +96,50 @@ export class CategoryVisualizationService {
     startRow: number,
   ): void {
     let currentRow = startRow;
-
     ratioData.monthlySummaries.forEach((monthly) => {
-      const employeeTable = new CategoryEmployeeRatioTableComponent(
-        sheet,
-        currentRow + 1, // 1行空けて配置
-        1,
-        ratioData,
-        monthly.month,
-      );
-      currentRow = employeeTable.renderTable();
+      try {
+        console.log('\n=== 従業員別業務比率の可視化 ===');
+        console.log('月:', monthly.month);
+        console.log('開始行:', currentRow);
+
+        // テーブルの出力
+        const employeeTable = new CategoryEmployeeRatioTableComponent(
+          sheet,
+          currentRow + 1,
+          1,
+          ratioData,
+          monthly.month,
+        );
+        const tableLastRow = employeeTable.renderTable();
+        console.log('テーブル最終行:', tableLastRow);
+        console.log('テーブルデータ:', employeeTable.rows.length);
+        console.log('テーブルヘッダー:', employeeTable.headers.length);
+
+        // グラフの出力
+        const chartComponent = new CategoryEmployeeRatioChartComponent(sheet);
+        monthly.employeeTotals.forEach((employee, index) => {
+          console.log(`\n従業員グラフ作成: ${employee.name} (${index + 1}/${monthly.employeeTotals.length})`);
+          chartComponent.render({
+            row: currentRow + 2,
+            column: 1,
+            numRows: employeeTable.rows.length,
+            numColumns: employeeTable.headers.length,
+            month: monthly.month,
+            employeeName: employee.name,
+            index,
+          });
+        });
+
+        currentRow = tableLastRow + chartComponent.chartHeight;
+        console.log('次の開始行:', currentRow);
+      } catch (error) {
+        console.error('エラー発生月:', monthly.month);
+        console.error('エラー詳細:', error);
+        throw new WorktimeError('Failed to visualize employee ratio', ErrorCodes.SHEET_ACCESS_ERROR, {
+          month: monthly.month,
+          error,
+        });
+      }
     });
   }
 }
