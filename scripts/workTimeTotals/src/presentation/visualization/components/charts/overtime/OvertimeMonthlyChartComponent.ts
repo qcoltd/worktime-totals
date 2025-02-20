@@ -29,8 +29,8 @@ export class OvertimeMonthlyChartComponent extends ChartComponent {
       .setPosition(
         graphRowPosition,
         hasMultipleMonths ? dataRange.column + this.chartWidth : dataRange.column, // グラフを横並べした時に2番目に出力したい
-        this.offsetX,
-        this.offsetY,
+        this._offsetX,
+        this._offsetY,
       )
       .build();
 
@@ -51,7 +51,7 @@ export class OvertimeMonthlyChartComponent extends ChartComponent {
         .setOption('title', '個別の残業時間(月)')
         .setOption('hAxis', { slantedTextAngle: 30 })
         .setOption('hAxis.gridlines.count', dataRange.numRows - 1) // 見出し行を除くため-1
-        .setPosition(graphRowPosition, dataRange.column, this.offsetX, this.offsetY)
+        .setPosition(graphRowPosition, dataRange.column, this._offsetX, this._offsetY)
         .build();
 
       if (lineChart) {
@@ -88,8 +88,8 @@ export class OvertimeMonthlyChartComponent extends ChartComponent {
         .setPosition(
           graphRowPosition,
           dataRange.column + this.chartWidth * 2,
-          this.offsetX,
-          this.offsetY,
+          this._offsetX,
+          this._offsetY,
         )
         .build();
 

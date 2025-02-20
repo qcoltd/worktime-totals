@@ -22,7 +22,7 @@ export class OvertimeWeeklyChartComponent extends ChartComponent {
       .setOption('title', '残業時間(週)')
       .setOption('hAxis', { slantedTextAngle: 30 })
       .setOption('hAxis.gridlines.count', dataRange.numRows - 1)
-      .setPosition(graphRowPosition, dataRange.column, this.offsetX, this.offsetY)
+      .setPosition(graphRowPosition, dataRange.column, this._offsetX, this._offsetY)
       .build();
 
     if (lineChart) {
@@ -57,9 +57,9 @@ export class OvertimeWeeklyChartComponent extends ChartComponent {
       .setOption('hAxis.gridlines.count', dataRange.numRows - 1)
       .setPosition(
         graphRowPosition,
-        dataRange.column + this.chartWidth,
-        this.offsetX,
-        this.offsetY,
+        dataRange.column + this._chartWidth,
+        this._offsetX,
+        this._offsetY,
       )
       .build();
 
