@@ -8,6 +8,7 @@ import { MonthlyCategorySummary, CategoryRatioData } from '../../../domain/categ
 export class CategoryVisualizationService {
   constructor(
     private startDate: Date,
+    private endDate: Date,
     private categoryTotalingService: CategoryTotalingService
   ) {}
 
@@ -15,22 +16,21 @@ export class CategoryVisualizationService {
     try {
       // 月ごとの集計データを作成
       const monthlySummaries: MonthlyCategorySummary[] = [];
-      let currentDate = new Date(this.startDate);
-      const endDate = new Date(this.startDate);
-      endDate.setFullYear(this.startDate.getFullYear(), this.startDate.getMonth() + 2, 0);  // 翌月末に修正
+      const startDate = new Date(this.startDate);
+      const endDate = new Date(this.endDate);
 
-      while (currentDate <= endDate) {
+      while (startDate <= endDate) {
         const summary = this.categoryTotalingService.calculateMonthlySummary(
           entriesForOvertime,
-          currentDate
+          startDate
         );
 
         monthlySummaries.push({
-          month: dayjsLib.formatDate(currentDate, 'YYYY/MM'),
+          month: dayjsLib.formatDate(startDate, 'YYYY/MM'),
           totalsByCategory: summary.totalsByCategory
         });
 
-        currentDate.setMonth(currentDate.getMonth() + 1);
+        startDate.setMonth(startDate.getMonth() + 1);
       }
 
       const ratioData: CategoryRatioData = {
@@ -41,6 +41,7 @@ export class CategoryVisualizationService {
         monthlySummaries
       };
 
+      // テーブルの出力
       const ratioTable = new CategoryRatioTableComponent(sheet, startRow, 1, ratioData);
       ratioTable.renderTable();
     } catch (error) {
