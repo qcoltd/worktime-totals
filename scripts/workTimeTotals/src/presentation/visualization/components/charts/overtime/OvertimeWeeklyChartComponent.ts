@@ -57,7 +57,7 @@ export class OvertimeWeeklyChartComponent extends ChartComponent {
       .setOption('hAxis.gridlines.count', dataRange.numRows - 1)
       .setPosition(
         graphRowPosition,
-        dataRange.column + this._chartWidth,
+        dataRange.column + this.chartWidth,
         this._offsetX,
         this._offsetY,
       )

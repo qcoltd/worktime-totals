@@ -1,13 +1,6 @@
 import { ChartComponent } from '../../base/ChartComponent';
 
 export class CategoryRatioChartComponent extends ChartComponent {
-  private getChartPosition(baseRow: number, baseColumn: number, index: number): { row: number; column: number } {
-    return {
-      row: baseRow + 1, // テーブルの下に1行空けて配置
-      column: baseColumn + (this.chartWidth * index) // グラフを横に並べて配置
-    };
-  }
-
   render(dataRange: {
     row: number;
     column: number;
