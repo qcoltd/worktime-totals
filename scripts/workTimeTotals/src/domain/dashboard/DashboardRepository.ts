@@ -42,7 +42,7 @@ export class DashboardRepository {
       throw new WorktimeError(
         'Failed to get dashboard settings',
         ErrorCodes.DASHBOARD_ERROR,
-        { error }
+        { message: error instanceof Error ? error.message : '不明なエラー' }
       );
     }
   }
@@ -75,7 +75,7 @@ export class DashboardRepository {
       throw new WorktimeError(
         'Failed to initialize dashboard sheet',
         ErrorCodes.DASHBOARD_ERROR,
-        { error }
+        { message: error instanceof Error ? error.message : '不明なエラー' }
       );
     }
   }

@@ -58,7 +58,9 @@ export class SubCategoryVisualizationService {
       throw new WorktimeError(
         'Failed to visualize subcategory data',
         ErrorCodes.SHEET_ACCESS_ERROR,
-        { error },
+        {
+          message: error instanceof Error ? error.message : '不明なエラー'
+        }
       );
     }
   }

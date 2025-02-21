@@ -11,6 +11,7 @@ vi.mock('../../../src/infrastructure/SpreadsheetAdapter', () => {
   MockSpreadsheetAdapter.prototype.writeWorkEntries = vi.fn();
   MockSpreadsheetAdapter.prototype.readWorkEntries = vi.fn();
   MockSpreadsheetAdapter.prototype.setSheetName = vi.fn();
+  MockSpreadsheetAdapter.prototype.getValues = vi.fn();
   return {
     SpreadsheetAdapter: MockSpreadsheetAdapter
   };
@@ -46,29 +47,13 @@ describe('WorkEntryRepository', () => {
 
   describe('findByDateRange', () => {
     it('指定された期間内のWorkEntryを取得できること', () => {
-      // テストデータの準備
-      const entries = new WorkEntryCollection();
-      entries.add(new WorkEntry({
-        date: new Date('2024/03/01'),
-        startTime: '09:00',
-        endTime: '17:30',
-        mainCategory: 'WEB開発',
-        subCategory: 'コーディング',
-        description: 'タスク1'
-      }));
-      entries.add(new WorkEntry({
-        date: new Date('2024/03/15'),
-        startTime: '10:00',
-        endTime: '18:00',
-        mainCategory: 'WEB運用',
-        subCategory: '定例作業',
-        description: 'タスク2'
-      }));
+      // getValuesのモックデータを設定 - I3:N の範囲のデータ形式に合わせる
+      const mockValues = [
+        [new Date('2024/03/01'), '09:00', '17:30', 'WEB開発', 'コーディング', 'タスク1'],
+        [new Date('2024/03/15'), '10:00', '18:00', 'WEB運用', '定例作業', 'タスク2']
+      ];
+      vi.mocked(mockAdapter.getValues).mockReturnValue(mockValues);
 
-      // readWorkEntriesのモックを設定
-      vi.mocked(mockAdapter.readWorkEntries).mockReturnValue(entries);
-
-      // 期間を指定して検索
       const result = repository.findByDateRange(
         new Date('2024/03/10'),
         new Date('2024/03/20')
@@ -110,17 +95,11 @@ describe('WorkEntryRepository', () => {
 
   describe('findAll', () => {
     it('WorkEntriesシートからデータを取得できること', () => {
-      const entries = new WorkEntryCollection();
-      entries.add(new WorkEntry({
-        date: new Date('2024/03/01'),
-        startTime: '09:00',
-        endTime: '17:30',
-        mainCategory: 'WEB開発',
-        subCategory: 'コーディング',
-        description: 'タスク1'
-      }));
-
-      vi.mocked(mockAdapter.readWorkEntries).mockReturnValue(entries);
+      // getValuesのモックデータを設定 - I3:N の範囲のデータ形式に合わせる
+      const mockValues = [
+        [new Date('2024/03/01'), '09:00', '17:30', 'WEB開発', 'コーディング', 'タスク1']  // ヘッダー行なし
+      ];
+      vi.mocked(mockAdapter.getValues).mockReturnValue(mockValues);
 
       const result = repository.findAll();
       expect(result.entries).toHaveLength(1);

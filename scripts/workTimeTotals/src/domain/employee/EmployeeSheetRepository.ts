@@ -5,6 +5,7 @@ import { TOTALING_SHEET } from '../../define';
 
 export interface EmployeeSheetRepositoryInterface {
   findAll(): EmployeeSheet[];
+  findByName(name: string): EmployeeSheet | undefined;
 }
 
 export class EmployeeSheetRepository implements EmployeeSheetRepositoryInterface {
@@ -51,5 +52,9 @@ export class EmployeeSheetRepository implements EmployeeSheetRepositoryInterface
         error
       );
     }
+  }
+
+  findByName(name: string): EmployeeSheet | undefined {
+    return this.findAll().find(sheet => sheet.name === name);
   }
 } 

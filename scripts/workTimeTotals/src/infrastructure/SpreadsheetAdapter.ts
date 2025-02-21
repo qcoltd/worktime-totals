@@ -9,13 +9,22 @@ export interface SpreadsheetAdapterInterface {
   setSheetName(sheetName: string): void;
   getColumnValues(column: string): any[];
   getSheetNames(): string[];
+  getValues(range?: string): any[][]
 }
 
 export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
   constructor(
-    private spreadsheetId: string,
-    private sheetName: string
+    private _spreadsheetId: string,
+    private _sheetName: string
   ) {}
+
+  get spreadsheetId(): string {
+    return this._spreadsheetId;
+  }
+
+  get sheetName(): string {
+    return this._sheetName;
+  }
 
   readWorkEntries(): WorkEntryCollection {
     try {
@@ -46,7 +55,15 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
           throw new WorktimeError(
             `Failed to parse row ${index + 3}`,
             ErrorCodes.INVALID_SHEET_FORMAT,
-            { row, error }
+            {
+              errorLocation: `行: ${index + 3}`,
+              message: error instanceof Error ? error.message : '不明なエラー',
+              cellData: {
+                row: index + 3,
+                values: row,
+                expectedFormat: '日付 | 開始時刻 | 終了時刻 | メインカテゴリ | サブカテゴリ | 説明'
+              }
+            }
           );
         }
       });
@@ -131,13 +148,15 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
       throw new WorktimeError(
         'Failed to parse row data',
         ErrorCodes.INVALID_SHEET_FORMAT,
-        { error }
+        {
+          message: error instanceof Error ? error.message : '不明なエラー'
+        }
       );
     }
   }
 
   setSheetName(sheetName: string): void {
-    this.sheetName = sheetName;
+    this._sheetName = sheetName;
   }
 
   getColumnValues(column: string): any[] {
@@ -203,5 +222,11 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
         error
       );
     }
+  }
+
+  getValues(range?: string): any[][] {
+    const sheet = this.getSheet();
+    const dataRange = range ? sheet.getRange(range) : sheet.getDataRange();
+    return dataRange.getValues();
   }
 } 

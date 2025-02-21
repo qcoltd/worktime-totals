@@ -30,10 +30,17 @@ export class WorktimeVisualizationService {
         lastRowOvertime + 2
       );
     } catch (error) {
+      const details = error instanceof WorktimeError ? {
+        ...error.details,
+        spreadsheetId: this.spreadsheetId,
+        spreadsheetName: SpreadsheetApp.openById(this.spreadsheetId).getName(),
+        message: '残業時間と業務比率の出力中にエラーが発生しました'
+      } : undefined;
+
       throw new WorktimeError(
         'Failed to visualize overtime and category data',
         ErrorCodes.SHEET_ACCESS_ERROR,
-        { error }
+        details
       );
     }
   }
@@ -47,10 +54,17 @@ export class WorktimeVisualizationService {
         subCategorySheet
       );
     } catch (error) {
+      const details = error instanceof WorktimeError ? {
+        ...error.details,
+        spreadsheetId: this.spreadsheetId,
+        spreadsheetName: SpreadsheetApp.openById(this.spreadsheetId).getName(),
+        message: '案件別作業時間の出力中にエラーが発生しました'
+      } : undefined;
+
       throw new WorktimeError(
         'Failed to visualize project breakdown data',
         ErrorCodes.SHEET_ACCESS_ERROR,
-        { error }
+        details
       );
     }
   }

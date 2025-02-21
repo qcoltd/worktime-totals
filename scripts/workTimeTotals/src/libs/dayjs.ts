@@ -24,7 +24,10 @@ class DayjsLib {
         throw new WorktimeError(
           'Invalid date format or value',
           ErrorCodes.INVALID_DATE_FORMAT,
-          { date }
+          {
+            message: `Invalid date: ${date}`,
+            errorLocation: `Date: ${date}`
+          }
         );
       }
 
@@ -36,7 +39,10 @@ class DayjsLib {
       throw new WorktimeError(
         'Invalid date value',
         ErrorCodes.INVALID_DATE_FORMAT,
-        { date }
+        {
+          message: `Invalid date: ${date}`,
+          errorLocation: `Date: ${date}`
+        }
       );
     }
 

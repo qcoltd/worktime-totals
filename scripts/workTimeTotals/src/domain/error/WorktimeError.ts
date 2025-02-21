@@ -1,11 +1,31 @@
+export interface SpreadsheetErrorDetails {
+  spreadsheetId?: string;
+  spreadsheetName?: string;
+  sheetName?: string;
+  errorLocation?: string;
+  message?: string;
+  cellData?: {
+    row: number;
+    values: any[];
+    expectedFormat: string;
+  };
+}
+
 export class WorktimeError extends Error {
   constructor(
     message: string,
-    public readonly code: string,
-    public readonly details?: unknown
+    public readonly code: typeof ErrorCodes[keyof typeof ErrorCodes],
+    public readonly details?: SpreadsheetErrorDetails
   ) {
     super(message);
     this.name = 'WorktimeError';
+  }
+
+  getErrorUrl(): string | undefined {
+    if (this.details?.spreadsheetId) {
+      return `https://docs.google.com/spreadsheets/d/${this.details.spreadsheetId}`;
+    }
+    return undefined;
   }
 }
 

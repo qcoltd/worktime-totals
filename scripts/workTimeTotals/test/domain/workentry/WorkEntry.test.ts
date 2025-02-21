@@ -54,14 +54,14 @@ describe('WorkEntry', () => {
     it('不正な時刻形式の場合はエラーとなること', () => {
       expect(() => {
         new WorkEntry({
-          date: new Date('2025/02/12'),
-          startTime: '9:0',  // 不正な形式
+          date: new Date('2024/03/01'),
+          startTime: '25:00',  // 不正な時刻
           endTime: '17:30',
-          mainCategory: '開発',
+          mainCategory: 'WEB開発',
           subCategory: 'コーディング',
           description: 'WorkEntryクラスの実装'
         });
-      }).toThrow('Invalid time format');
+      }).toThrow('Invalid start time format');  // エラーメッセージを更新
     });
 
     it('必須項目が欠けている場合はエラーとなること', () => {

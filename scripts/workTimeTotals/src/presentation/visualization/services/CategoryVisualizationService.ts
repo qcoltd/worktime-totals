@@ -31,7 +31,7 @@ export class CategoryVisualizationService {
       this.visualizeEmployeeRatio(sheet, ratioData, totalRatioLastRow + 1);
     } catch (error) {
       throw new WorktimeError('Failed to visualize category data', ErrorCodes.SHEET_ACCESS_ERROR, {
-        error,
+        message: error instanceof Error ? error.message : '不明なエラー'
       });
     }
   }
@@ -136,8 +136,7 @@ export class CategoryVisualizationService {
         console.error('エラー発生月:', monthly.month);
         console.error('エラー詳細:', error);
         throw new WorktimeError('Failed to visualize employee ratio', ErrorCodes.SHEET_ACCESS_ERROR, {
-          month: monthly.month,
-          error,
+          message: `${monthly.month}の処理中にエラーが発生: ${error instanceof Error ? error.message : '不明なエラー'}`
         });
       }
     });

@@ -30,7 +30,9 @@ export class OvertimeVisualizationService {
       throw new WorktimeError(
         'Failed to visualize overtime data',
         ErrorCodes.SHEET_ACCESS_ERROR,
-        { error }
+        {
+          message: error instanceof Error ? error.message : '不明なエラー'
+        }
       );
     }
   }
