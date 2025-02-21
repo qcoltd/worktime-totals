@@ -1,5 +1,5 @@
 export interface TableData {
-  title: string;
+  title?: string;
   headers: string[];
   rows: (string | number)[][];
 }
@@ -22,33 +22,38 @@ export abstract class TableComponent {
     this._headers = data.headers;
     this._rows = data.rows;
 
-    // タイトル行を出力
-    this.sheet.getRange(this.startRow, this.startColumn).setValue(data.title);
+    // タイトルの有無で開始行を調整
+    const headerRow = data.title ? this.startRow + 1 : this.startRow;
+
+    // タイトル行を出力（存在する場合のみ）
+    if (data.title) {
+      this.sheet.getRange(this.startRow, this.startColumn).setValue(data.title);
+    }
     
     // ヘッダー行を出力
-    this.sheet.getRange(this.startRow + 1, this.startColumn, 1, data.headers.length)
+    this.sheet.getRange(headerRow, this.startColumn, 1, data.headers.length)
       .setValues([data.headers]);
 
     // データ行を出力
     if (data.rows.length > 0) {
       this.sheet.getRange(
-        this.startRow + 2,
+        headerRow + 1,
         this.startColumn,
         data.rows.length,
         data.headers.length
       ).setValues(data.rows);
     }
 
-    this.lastRow = this.startRow + data.rows.length + 1;
+    this.lastRow = headerRow + data.rows.length;
 
     // 書式設定
     const dataRange = this.sheet.getRange(
-      this.startRow,
+      data.title ? this.startRow : headerRow,  // タイトルがない場合はヘッダー行から
       this.startColumn,
-      data.rows.length + 2,
+      data.rows.length + (data.title ? 2 : 1),  // タイトルがない場合は1行減らす
       data.headers.length
     );
-    this.applyFormat(dataRange);
+    this.applyFormat(dataRange, !!data.title);  // titleの有無を渡す
   }
 
   get headers(): string[] {
@@ -63,24 +68,23 @@ export abstract class TableComponent {
     return this.lastRow;
   }
 
-  private applyFormat(range: GoogleAppsScript.Spreadsheet.Range): void {
-    // タイトル行とヘッダー行は文字列として扱う
-    const titleAndHeaderRows = this.sheet.getRange(
-      range.getRow(),
+  private applyFormat(range: GoogleAppsScript.Spreadsheet.Range, hasTitle: boolean): void {
+    // ヘッダー行は文字列として扱う
+    const headerRow = this.sheet.getRange(
+      hasTitle ? range.getRow() + 1 : range.getRow(),  // タイトルがある場合は1行下
       range.getColumn(),
-      2,
+      1,
       range.getNumColumns()
     );
-    titleAndHeaderRows.setNumberFormat('@STRING@');
+    headerRow.setNumberFormat('@STRING@');
 
-    // データ行がある場合のみ数値書式を適用
-    if (range.getNumRows() > 2) {
-      // データ行の数値セルに書式を適用
+    // データ行の数値セルに書式を適用
+    if (range.getNumRows() > 1) {
       const dataRange = this.sheet.getRange(
-        range.getRow() + 2,
-        range.getColumn() + 1,  // 日付列を除く
-        range.getNumRows() - 2,
-        range.getNumColumns() - 1
+        headerRow.getRow() + 1,  // ヘッダー行の次から
+        range.getColumn() + 1,  // 従業員名列を除く
+        range.getNumRows() - (hasTitle ? 2 : 1),  // タイトルとヘッダー行 or ヘッダー行を除く
+        range.getNumColumns() - 1  // 従業員名列を除く
       );
       dataRange.setNumberFormat('#,##0.0');
     }
