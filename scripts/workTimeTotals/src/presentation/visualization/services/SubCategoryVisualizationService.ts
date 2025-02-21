@@ -2,6 +2,8 @@ import { WorkEntry } from '../../../domain/workEntry/WorkEntry';
 import { WorktimeError, ErrorCodes } from '../../../domain/error/WorktimeError';
 import { SubCategoryTotalingService } from '../../../application/SubCategoryTotalingService';
 import { dayjsLib } from '../../../libs/dayjs';
+import { SubCategoryBarChartComponent } from '../components/charts/subcategory/SubCategoryBarChartComponent';
+
 
 
 export class SubCategoryVisualizationService {
@@ -30,13 +32,13 @@ export class SubCategoryVisualizationService {
 
       // サブカテゴリの一覧を取得（重複を除去）
       const subCategories = this.getUniqueSubCategories(entries);
-      
+
       // ヘッダー行の作成（2行目に移動）
       const headers = ['従業員名', ...subCategories, '合計'];
       sheet.getRange(startRow + 2, 1, 1, headers.length).setValues([headers]);
 
       // 以降の処理で行番号を2行ずらす
-      const dataStartRow = startRow + 3;
+      const headerRow = startRow + 2;
       
       // 従業員ごとの集計データを作成
       const employeeRows: any[][] = [];
@@ -72,8 +74,8 @@ export class SubCategoryVisualizationService {
         employeeRows.push(row);
       });
 
-      // 従業員データの出力
-      sheet.getRange(dataStartRow, 1, employeeRows.length, headers.length)
+      // 従業員データの出力 ヘッダー行の次の行から出力
+      sheet.getRange(headerRow + 1, 1, employeeRows.length, headers.length)
         .setValues(employeeRows);
 
       // 合計行の作成
@@ -85,7 +87,7 @@ export class SubCategoryVisualizationService {
 
       // 合計行の出力（従業員データの後に配置）
       const totalRowRange = sheet.getRange(
-        dataStartRow + employeeRows.length,
+        headerRow + 1 + employeeRows.length,
         1,
         1,
         headers.length
@@ -97,7 +99,34 @@ export class SubCategoryVisualizationService {
       this.applyStyles(sheet, startRow + 2, totalRows, headers.length); // ヘッダー行の位置から開始
       this.applyInfoRowStyles(sheet, startRow, infoRow.length);
 
-      return dataStartRow + employeeRows.length;
+      // グラフ用のデータを準備
+    //   const employeeNames = Array.from(entries.keys());
+    //   const chartData = {
+    //     employeeNames: [...employeeNames, '合計'],
+    //     subCategories: subCategories,
+    //     values: [
+    //       ...employeeNames.map(name => 
+    //         subCategories.map(subCategory => 
+    //           entries.get(name)!
+    //             .filter(entry => entry.subCategory === subCategory)
+    //             .reduce((sum, entry) => sum + entry.calculateDuration(), 0)
+    //         )
+    //       ),
+    //       // 合計行のデータ
+    //       subCategories.map(subCategory => totalsBySubCategory.get(subCategory) || 0)
+    //     ]
+    //   };
+
+      // グラフの描画
+      const chart = new SubCategoryBarChartComponent(sheet);
+      chart.render({
+        row: headerRow,  // ヘッダー行の位置
+        column: 1,
+        numRows: employeeRows.length + 1 + 1,  // データ行数 + ヘッダー行 + 合計行
+        numColumns: subCategories.length + 1 + 1  // データ列数 + 従業員名列 + 合計列
+      });
+
+      return headerRow + employeeRows.length + chart.chartHeight;
     } catch (error) {
       throw new WorktimeError(
         'Failed to visualize subcategory data',
