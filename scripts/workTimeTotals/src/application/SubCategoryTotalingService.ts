@@ -1,6 +1,7 @@
 import { WorkEntry } from '../domain/workEntry/WorkEntry';
 import { CategoryCalculator } from '../domain/category/CategoryCalculator';
 import { dayjsLib } from '../libs/dayjs';
+import { CategoryRepository } from '../domain/category/CategoryRepository';
 
 interface SubCategoryTotal {
   subCategory: string;
@@ -77,5 +78,10 @@ export class SubCategoryTotalingService {
       subCategory,
       hours
     }));
+  }
+
+  getSubCategories(): string[] {
+    const categoryRepo = new CategoryRepository();
+    return categoryRepo.subCategories;
   }
 } 
