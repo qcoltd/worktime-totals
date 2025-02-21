@@ -43,6 +43,7 @@ export class SubCategoryBarChartComponent extends ChartComponent {
       )
       .setOption('title', 'サブカテゴリ別作業時間')
       .setOption('legend', { position: 'right' })
+      .setOption('width', 1000)  // グラフの横幅をピクセル単位で指定
       .setOption('series', Object.fromEntries(
         Array.from({ length: chartRange.getNumColumns() - 1 }, (_, i) => [
           i.toString(),
