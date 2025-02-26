@@ -209,14 +209,3 @@ function main() {
     }
   }
 }
-
-// ダッシュボードシートの初期化用関数
-function initializeDashboard() {
-  try {
-    const dashboardRepo = new DashboardRepository(TOTALING_SHEET.SS_ID);
-    dashboardRepo.initializeSheet();
-    console.log('ダッシュボードシートを初期化しました');
-  } catch (error) {
-    console.error('ダッシュボードシートの初期化に失敗しました:', error);
-  }
-}
