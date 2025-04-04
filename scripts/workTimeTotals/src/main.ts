@@ -183,7 +183,21 @@ function main() {
     worktimeOutput.visualizeOvertimeAndCategory(overtimeSummaries, entriesForOvertime);
 
     // 案件別作業時間の内訳を出力
-    worktimeOutput.visualizeProjectBreakdown(entriesForOvertime);
+    // Filter entries by the target main categories before visualization
+    const projectFilteredEntries = new Map<string, WorkEntry[]>();
+
+    entriesForOvertime.forEach((entries, name) => {
+      // Filter entries that belong to the target projects (main categories)
+      const filteredEntries = entries.filter(entry =>
+        targetMainCategories.includes(entry.mainCategory)
+      );
+
+      if (filteredEntries.length > 0) {
+        projectFilteredEntries.set(name, filteredEntries);
+      }
+    });
+
+    worktimeOutput.visualizeProjectBreakdown(projectFilteredEntries);
 
   } catch (error) {
     if (error instanceof WorktimeError) {
