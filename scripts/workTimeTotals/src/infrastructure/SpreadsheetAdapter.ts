@@ -36,12 +36,12 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
         );
       }
 
-      const dataRange = sheet.getRange('I3:N');
+      const dataRange = sheet.getRange('I3:O');
       const rows = dataRange.getValues();
 
       const headers = [
         'date', 'startTime', 'endTime',
-        'mainCategory', 'subCategory', 'description'
+        'mainCategory', 'subCategory', 'meeting', 'workContent'
       ];
 
       const collection = new WorkEntryCollection();
@@ -92,7 +92,7 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
 
     const headers = [
       'date', 'startTime', 'endTime',
-      'mainCategory', 'subCategory', 'description'
+      'mainCategory', 'subCategory', 'meeting', 'workContent'
     ];
 
     const rows = entries.entries.map(entry => [
@@ -101,7 +101,8 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
       entry.endTime,
       entry.mainCategory,
       entry.subCategory,
-      entry.description
+      entry.meeting,
+      entry.workContent
     ]);
 
     sheet.clear();
@@ -112,7 +113,7 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
   }
 
   // TODO: any型を解決する
-  private createWorkEntryFromRow(row: any[], headers: string[]): WorkEntry {
+  private createWorkEntryFromRow(row: (string | Date | null)[], headers: string[]): WorkEntry {
     try {
       const dateValue = row[0];
       let parsedDate: Date;
@@ -139,7 +140,8 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
         endTime,
         mainCategory: row[3]?.toString() || '',
         subCategory: row[4]?.toString() || '',
-        description: row[5]?.toString() || ''
+        meeting: row[5]?.toString() || '',
+        workContent: row[6]?.toString() || ''
       });
     } catch (error) {
       if (error instanceof WorktimeError) {
@@ -229,4 +231,4 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
     const dataRange = range ? sheet.getRange(range) : sheet.getDataRange();
     return dataRange.getValues();
   }
-} 
+}       

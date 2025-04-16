@@ -44,6 +44,7 @@ describe('SpreadsheetAdapter', () => {
               new Date('1899/12/30 12:00:00'),
               '学習',
               '開発',
+              '社内MTG',
               '技術研修'
             ]
           ])
@@ -64,10 +65,11 @@ describe('SpreadsheetAdapter', () => {
       expect(result.entries[0].endTime).toBe('12:00');
       expect(result.entries[0].mainCategory).toBe('学習');
       expect(result.entries[0].subCategory).toBe('開発');
-      expect(result.entries[0].description).toBe('技術研修');
+      expect(result.entries[0].meeting).toBe('社内MTG');
+      expect(result.entries[0].workContent).toBe('技術研修');
 
       // 正しい範囲からデータを取得していることを確認
-      expect(mockSheet.getRange).toHaveBeenCalledWith('I3:N');
+      expect(mockSheet.getRange).toHaveBeenCalledWith('I3:O');
     });
 
     it('空の行はスキップされること', () => {
@@ -80,9 +82,10 @@ describe('SpreadsheetAdapter', () => {
               new Date('1899/12/30 12:00:00'),
               '学習',
               '開発',
+              '社内MTG',
               '技術研修'
             ],
-            [null, null, null, '', '', ''], // 空の行
+            [null, null, null, '', '', '', ''], // 空の行
             [
               new Date('2025/02/12'),
               new Date('1899/12/30 13:00:00'),
@@ -116,6 +119,7 @@ describe('SpreadsheetAdapter', () => {
               '12:00',
               '学習',
               '開発',
+              '社内MTG',
               '技術研修'
             ]
           ])
@@ -165,6 +169,7 @@ describe('SpreadsheetAdapter', () => {
               new Date('1899/12/30 12:00:00'),
               '学習',
               '開発',
+              '社内MTG',
               '技術研修'
             ]
           ])
@@ -211,7 +216,8 @@ describe('SpreadsheetAdapter', () => {
         endTime: '12:00',
         mainCategory: '学習',
         subCategory: '開発',
-        description: '技術研修'
+        meeting: '社内MTG',
+        workContent: '技術研修'
       }));
 
       adapter.writeWorkEntries(collection);
@@ -221,8 +227,8 @@ describe('SpreadsheetAdapter', () => {
 
       // 正しい値が書き込まれたことを確認
       expect(mockSheet.getRange).toHaveBeenCalledTimes(2); // ヘッダーとデータ
-      expect(mockSheet.getRange).toHaveBeenNthCalledWith(1, 1, 1, 1, 6); // ヘッダー
-      expect(mockSheet.getRange).toHaveBeenNthCalledWith(2, 2, 1, 1, 6); // データ
+      expect(mockSheet.getRange).toHaveBeenNthCalledWith(1, 1, 1, 1, 7); // ヘッダー
+      expect(mockSheet.getRange).toHaveBeenNthCalledWith(2, 2, 1, 1, 7); // データ
     });
 
     it('空のコレクションの場合はヘッダーのみ書き込むこと', () => {
@@ -247,7 +253,7 @@ describe('SpreadsheetAdapter', () => {
 
       // ヘッダーのみ書き込まれたことを確認
       expect(mockSheet.getRange).toHaveBeenCalledTimes(1);
-      expect(mockSheet.getRange).toHaveBeenCalledWith(1, 1, 1, 6);
+      expect(mockSheet.getRange).toHaveBeenCalledWith(1, 1, 1, 7);
     });
   });
-}); 
+});              

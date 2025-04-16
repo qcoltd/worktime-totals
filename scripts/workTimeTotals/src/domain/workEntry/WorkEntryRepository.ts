@@ -79,7 +79,7 @@ export class WorkEntryRepository implements WorkEntryRepositoryInterface {
 
   findAll(): WorkEntryCollection {
     try {
-      const values = this.adapter.getValues('I3:N');
+      const values = this.adapter.getValues('I3:O');
       const entries = new WorkEntryCollection();
 
       values.forEach((row, index) => {
@@ -92,7 +92,8 @@ export class WorkEntryRepository implements WorkEntryRepositoryInterface {
             endTime: row[2] instanceof Date ? this.formatTime(row[2]) : row[2],
             mainCategory: row[3]?.toString() || '',
             subCategory: row[4]?.toString() || '',
-            description: row[5]?.toString() || ''
+            meeting: row[5]?.toString() || '',
+            workContent: row[6]?.toString() || ''
           });
           entries.add(entry);
         } catch (error) {
@@ -142,4 +143,4 @@ export class WorkEntryRepository implements WorkEntryRepositoryInterface {
     const minutes = date.getMinutes().toString().padStart(2, '0');
     return `${hours}:${minutes}`;
   }
-} 
+}    
