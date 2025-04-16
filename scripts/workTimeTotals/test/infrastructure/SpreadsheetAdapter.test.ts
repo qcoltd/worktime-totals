@@ -69,7 +69,7 @@ describe('SpreadsheetAdapter', () => {
       expect(result.entries[0].workContent).toBe('技術研修');
 
       // 正しい範囲からデータを取得していることを確認
-      expect(mockSheet.getRange).toHaveBeenCalledWith('I3:O');
+      expect(mockSheet.getRange).toHaveBeenCalledWith('J3:P');
     });
 
     it('空の行はスキップされること', () => {
@@ -256,4 +256,4 @@ describe('SpreadsheetAdapter', () => {
       expect(mockSheet.getRange).toHaveBeenCalledWith(1, 1, 1, 7);
     });
   });
-});              
+});                

@@ -79,7 +79,7 @@ export class WorkEntryRepository implements WorkEntryRepositoryInterface {
 
   findAll(): WorkEntryCollection {
     try {
-      const values = this.adapter.getValues('I3:O');
+      const values = this.adapter.getValues('J3:P');
       const entries = new WorkEntryCollection();
 
       values.forEach((row, index) => {
@@ -152,4 +152,4 @@ export class WorkEntryRepository implements WorkEntryRepositoryInterface {
     const minutes = date.getMinutes().toString().padStart(2, '0');
     return `${hours}:${minutes}`;
   }
-}        
+}          

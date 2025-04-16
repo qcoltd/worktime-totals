@@ -36,7 +36,7 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
         );
       }
 
-      const dataRange = sheet.getRange('I3:O');
+      const dataRange = sheet.getRange('J3:P');
       const rows = dataRange.getValues();
 
       const headers = [
@@ -235,4 +235,4 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
     const dataRange = range ? sheet.getRange(range) : sheet.getDataRange();
     return dataRange.getValues();
   }
-}           
+}             
