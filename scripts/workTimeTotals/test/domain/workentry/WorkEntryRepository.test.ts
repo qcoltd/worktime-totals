@@ -47,10 +47,10 @@ describe('WorkEntryRepository', () => {
 
   describe('findByDateRange', () => {
     it('指定された期間内のWorkEntryを取得できること', () => {
-      // getValuesのモックデータを設定 - I3:N の範囲のデータ形式に合わせる
+      // getValuesのモックデータを設定 - I3:O の範囲のデータ形式に合わせる
       const mockValues = [
-        [new Date('2024/03/01'), '09:00', '17:30', 'WEB開発', 'コーディング', 'タスク1'],
-        [new Date('2024/03/15'), '10:00', '18:00', 'WEB運用', '定例作業', 'タスク2']
+        [new Date('2024/03/01'), '09:00', '17:30', 'WEB開発', 'コーディング', '社内MTG', 'タスク1'],
+        [new Date('2024/03/15'), '10:00', '18:00', 'WEB運用', '定例作業', '社内MTG', 'タスク2']
       ];
       vi.mocked(mockAdapter.getValues).mockReturnValue(mockValues);
 
@@ -60,7 +60,7 @@ describe('WorkEntryRepository', () => {
       );
 
       expect(result.entries).toHaveLength(1);
-      expect(result.entries[0].description).toBe('タスク2');
+      expect(result.entries[0].workContent).toBe('タスク2');
     });
   });
 
@@ -73,7 +73,8 @@ describe('WorkEntryRepository', () => {
         endTime: '17:30',
         mainCategory: 'WEB開発',
         subCategory: 'コーディング',
-        description: 'タスク1'
+        meeting: '社内MTG',
+        workContent: 'タスク1'
       }));
 
       repository.save(entries);
@@ -95,15 +96,15 @@ describe('WorkEntryRepository', () => {
 
   describe('findAll', () => {
     it('WorkEntriesシートからデータを取得できること', () => {
-      // getValuesのモックデータを設定 - I3:N の範囲のデータ形式に合わせる
+      // getValuesのモックデータを設定 - I3:O の範囲のデータ形式に合わせる
       const mockValues = [
-        [new Date('2024/03/01'), '09:00', '17:30', 'WEB開発', 'コーディング', 'タスク1']  // ヘッダー行なし
+        [new Date('2024/03/01'), '09:00', '17:30', 'WEB開発', 'コーディング', '社内MTG', 'タスク1']  // ヘッダー行なし
       ];
       vi.mocked(mockAdapter.getValues).mockReturnValue(mockValues);
 
       const result = repository.findAll();
       expect(result.entries).toHaveLength(1);
-      expect(result.entries[0].description).toBe('タスク1');
+      expect(result.entries[0].workContent).toBe('タスク1');
     });
   });
-}); 
+});            

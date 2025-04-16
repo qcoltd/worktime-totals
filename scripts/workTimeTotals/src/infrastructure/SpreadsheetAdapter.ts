@@ -36,12 +36,12 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
         );
       }
 
-      const dataRange = sheet.getRange('I3:N');
+      const dataRange = sheet.getRange('J3:P');
       const rows = dataRange.getValues();
 
       const headers = [
         'date', 'startTime', 'endTime',
-        'mainCategory', 'subCategory', 'description'
+        'mainCategory', 'subCategory', 'meeting', 'workContent'
       ];
 
       const collection = new WorkEntryCollection();
@@ -61,7 +61,7 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
               cellData: {
                 row: index + 3,
                 values: row,
-                expectedFormat: '日付 | 開始時刻 | 終了時刻 | メインカテゴリ | サブカテゴリ | 説明'
+                expectedFormat: '日付 | 開始時刻 | 終了時刻 | メインカテゴリ | サブカテゴリ | MTG | 業務内容'
               }
             }
           );
@@ -92,7 +92,7 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
 
     const headers = [
       'date', 'startTime', 'endTime',
-      'mainCategory', 'subCategory', 'description'
+      'mainCategory', 'subCategory', 'meeting', 'workContent'
     ];
 
     const rows = entries.entries.map(entry => [
@@ -101,7 +101,8 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
       entry.endTime,
       entry.mainCategory,
       entry.subCategory,
-      entry.description
+      entry.meeting,
+      entry.workContent
     ]);
 
     sheet.clear();
@@ -112,34 +113,31 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
   }
 
   // TODO: any型を解決する
-  private createWorkEntryFromRow(row: any[], headers: string[]): WorkEntry {
+  private createWorkEntryFromRow(row: (string | Date | null)[], headers: string[]): WorkEntry {
     try {
-      const dateValue = row[0];
-      let parsedDate: Date;
-      if (typeof dateValue === 'string') {
-        parsedDate = dayjsLib.parse(dateValue).toDate();
-      } else if (dateValue instanceof Date) {
-        parsedDate = dateValue;
-      } else {
-        throw new Error('Invalid date format');
-      }
-
+      const sheetNameDate = this.extractDateFromSheetName(this.sheetName);
+      
       const formatTime = (date: Date): string => {
         const hours = date.getHours().toString().padStart(2, '0');
         const minutes = date.getMinutes().toString().padStart(2, '0');
         return `${hours}:${minutes}`;
       };
 
-      const startTime = row[1] instanceof Date ? formatTime(row[1]) : row[1]?.toString() || '';
-      const endTime = row[2] instanceof Date ? formatTime(row[2]) : row[2]?.toString() || '';
+      const startTime = row[0] instanceof Date ? formatTime(row[0]) : row[0]?.toString() || '';
+      const endTime = row[1] instanceof Date ? formatTime(row[1]) : row[1]?.toString() || '';
+
+      if (typeof row[2] !== 'string' && !(row[2] instanceof String)) {
+        throw new Error(`メインカテゴリの形式が不正です: ${JSON.stringify(row[2])}`);
+      }
 
       return new WorkEntry({
-        date: parsedDate,
+        date: sheetNameDate,
         startTime,
         endTime,
-        mainCategory: row[3]?.toString() || '',
-        subCategory: row[4]?.toString() || '',
-        description: row[5]?.toString() || ''
+        mainCategory: row[2]?.toString() || '',
+        subCategory: row[3]?.toString() || '',
+        meeting: row[4]?.toString() || '',
+        workContent: row[5]?.toString() || ''
       });
     } catch (error) {
       if (error instanceof WorktimeError) {
@@ -229,4 +227,30 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
     const dataRange = range ? sheet.getRange(range) : sheet.getDataRange();
     return dataRange.getValues();
   }
-} 
+
+  private extractDateFromSheetName(sheetName: string): Date {
+    try {
+      if (!/^\d{8}$/.test(sheetName)) {
+        throw new Error(`シート名が日付形式ではありません: ${sheetName}`);
+      }
+      
+      const year = parseInt(sheetName.substring(0, 4), 10);
+      const month = parseInt(sheetName.substring(4, 6), 10) - 1; // JavaScriptの月は0-11
+      const day = parseInt(sheetName.substring(6, 8), 10);
+      
+      const date = new Date(year, month, day);
+      
+      if (isNaN(date.getTime())) {
+        throw new Error(`無効な日付です: ${sheetName}`);
+      }
+      
+      return date;
+    } catch (error) {
+      throw new WorktimeError(
+        `シート名から日付を抽出できませんでした: ${sheetName}`,
+        ErrorCodes.INVALID_SHEET_FORMAT,
+        error
+      );
+    }
+  }
+}                            
