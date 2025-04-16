@@ -26,7 +26,8 @@ describe('SubCategoryTotalingService', () => {
           endTime: '17:00', // 4時間
           mainCategory: 'WEB開発',
           subCategory: 'テスト',
-          description: 'タスク2'
+          meeting: '',
+          workContent: 'タスク2'
         })
       ]);
 
@@ -38,7 +39,8 @@ describe('SubCategoryTotalingService', () => {
           endTime: '18:00', // 9時間
           mainCategory: 'WEB開発',
           subCategory: 'コーディング',
-          description: 'タスク3'
+          meeting: '',
+          workContent: 'タスク3'
         })
       ]);
 
@@ -89,7 +91,8 @@ describe('SubCategoryTotalingService', () => {
           endTime: '17:00', // 4時間
           mainCategory: '学習',
           subCategory: 'コーディング',
-          description: 'タスク2'
+          meeting: '',
+          workContent: 'タスク2'
         })
       ]);
 

@@ -61,7 +61,8 @@ describe('WorkEntryCollection', () => {
         endTime: '12:00',
         mainCategory: '学習',
         subCategory: '開発',
-        description: '午前の部'
+        meeting: '',
+        workContent: '技術研修'
       }));
       collection.add(new WorkEntry({
         date: new Date('2025/02/12'),
@@ -69,7 +70,8 @@ describe('WorkEntryCollection', () => {
         endTime: '17:30',
         mainCategory: '学習',
         subCategory: '開発',
-        description: '午後の部'
+        meeting: '',
+        workContent: '午後の部'
       }));
 
       expect(collection.totalDuration()).toBe(6.5); // 2時間 + 4.5時間
@@ -92,7 +94,8 @@ describe('WorkEntryCollection', () => {
         endTime: '15:00',
         mainCategory: '運用',
         subCategory: '定例作業',
-        description: '日次確認'
+        meeting: '',
+        workContent: '日次確認'
       }));
 
       const categoryTotals = collection.totalDurationByCategory();
@@ -111,7 +114,8 @@ describe('WorkEntryCollection', () => {
           endTime: '12:00',
           mainCategory: 'WEB開発',
           subCategory: 'コーディング',
-          description: 'タスク1'
+          meeting: '',
+          workContent: 'タスク1'
         }));
 
         // 休憩時間
@@ -121,7 +125,8 @@ describe('WorkEntryCollection', () => {
           endTime: '13:00',
           mainCategory: '休憩',
           subCategory: '休憩',
-          description: 'お昼休憩'
+          meeting: '',
+          workContent: 'お昼休憩'
         }));
 
         // 通常の作業
@@ -131,7 +136,8 @@ describe('WorkEntryCollection', () => {
           endTime: '17:30',
           mainCategory: 'WEB開発',
           subCategory: 'テスト',
-          description: 'タスク2'
+          meeting: '',
+          workContent: 'タスク2'
         }));
 
         expect(collection.totalDuration()).toBe(7.5); // 3時間 + 4.5時間 = 7.5時間
@@ -149,7 +155,8 @@ describe('WorkEntryCollection', () => {
           endTime: '12:00',
           mainCategory: 'WEB開発',
           subCategory: 'コーディング',
-          description: 'タスク1'
+          meeting: '',
+          workContent: 'タスク1'
         }));
 
         const totals = collection.totalDurationByCategory();
@@ -167,7 +174,8 @@ describe('WorkEntryCollection', () => {
         endTime: '00:00',
         mainCategory: 'その他',
         subCategory: '予定立て・日報',
-        description: '勤怠集計 仕様の確認'
+        meeting: '',
+        workContent: '勤怠集計 仕様の確認'
       }));
 
       expect(collection.totalDuration()).toBe(5);
@@ -180,7 +188,8 @@ describe('WorkEntryCollection', () => {
         endTime: '02:00',
         mainCategory: 'その他',
         subCategory: '予定立て・日報',
-        description: '勤怠集計 仕様の確認'
+        meeting: '',
+        workContent: '勤怠集計 仕様の確認'
       }));
 
       expect(collection2.totalDuration()).toBe(7);
@@ -198,7 +207,8 @@ describe('WorkEntryCollection', () => {
         endTime: '18:00',
         mainCategory: 'WEB開発',
         subCategory: 'コーディング',
-        description: 'タスク1'
+        meeting: '',
+        workContent: 'タスク1'
       }));
 
       expect(collection.totalOvertimeHours()).toBe(1);
@@ -214,7 +224,8 @@ describe('WorkEntryCollection', () => {
         endTime: '18:00',
         mainCategory: 'WEB開発',
         subCategory: 'コーディング',
-        description: 'タスク1'
+        meeting: '',
+        workContent: 'タスク1'
       }));
 
       // 1時間の休憩
@@ -224,7 +235,8 @@ describe('WorkEntryCollection', () => {
         endTime: '13:00',
         mainCategory: '休憩',
         subCategory: '休憩',
-        description: 'お昼休憩'
+        meeting: '',
+        workContent: 'お昼休憩'
       }));
 
       expect(collection.totalOvertimeHours()).toBe(1);
@@ -241,7 +253,8 @@ describe('WorkEntryCollection', () => {
         endTime: '18:00',
         mainCategory: 'WEB開発',
         subCategory: 'コーディング',
-        description: 'タスク1'
+        meeting: '',
+        workContent: 'タスク1'
       }));
 
       // 3/2: 2時間の残業
@@ -252,7 +265,8 @@ describe('WorkEntryCollection', () => {
         endTime: '19:00',
         mainCategory: 'WEB開発',
         subCategory: 'テスト',
-        description: 'タスク2'
+        meeting: '',
+        workContent: 'タスク2'
       }));
 
       const overtimeByDate = collection.overtimeHoursByDate();
