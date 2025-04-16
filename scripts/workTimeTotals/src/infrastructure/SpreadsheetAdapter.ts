@@ -111,8 +111,7 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
     }
   }
 
-  // TODO: any型を解決する
-  private createWorkEntryFromRow(row: any[], headers: string[]): WorkEntry {
+  private createWorkEntryFromRow(row: (string | Date | null)[], headers: string[]): WorkEntry {
     try {
       const dateValue = row[0];
       let parsedDate: Date;
@@ -229,4 +228,4 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
     const dataRange = range ? sheet.getRange(range) : sheet.getDataRange();
     return dataRange.getValues();
   }
-} 
+}  
