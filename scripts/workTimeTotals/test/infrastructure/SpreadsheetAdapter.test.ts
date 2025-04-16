@@ -39,13 +39,13 @@ describe('SpreadsheetAdapter', () => {
         getRange: vi.fn().mockReturnValue({
           getValues: vi.fn().mockReturnValue([
             [
-              new Date('2025/02/12'),
               new Date('1899/12/30 10:00:00'),
               new Date('1899/12/30 12:00:00'),
               '学習',
               '開発',
+              '技術研修',
               '社内MTG',
-              '技術研修'
+              'サブカテゴリ別予実'
             ]
           ])
         }),
@@ -77,22 +77,23 @@ describe('SpreadsheetAdapter', () => {
         getRange: vi.fn().mockReturnValue({
           getValues: vi.fn().mockReturnValue([
             [
-              new Date('2025/02/12'),
               new Date('1899/12/30 10:00:00'),
               new Date('1899/12/30 12:00:00'),
               '学習',
               '開発',
+              '技術研修',
               '社内MTG',
-              '技術研修'
+              'サブカテゴリ別予実'
             ],
             [null, null, null, '', '', '', ''], // 空の行
             [
-              new Date('2025/02/12'),
               new Date('1899/12/30 13:00:00'),
               new Date('1899/12/30 15:00:00'),
               '運用',
               '定例作業',
-              '日次確認'
+              '日次確認',
+              '',
+              'サブカテゴリ別予実'
             ]
           ])
         }),
@@ -114,13 +115,13 @@ describe('SpreadsheetAdapter', () => {
         getRange: vi.fn().mockReturnValue({
           getValues: vi.fn().mockReturnValue([
             [
-              'invalid-date', // 不正な日付
-              '10:00',
+              'invalid-date', // 不正な時間
               '12:00',
               '学習',
               '開発',
+              '技術研修',
               '社内MTG',
-              '技術研修'
+              'サブカテゴリ別予実'
             ]
           ])
         }),
@@ -164,13 +165,13 @@ describe('SpreadsheetAdapter', () => {
         getRange: vi.fn().mockReturnValue({
           getValues: vi.fn().mockReturnValue([
             [
-              '2025/02/31', // 不正な日付
-              new Date('1899/12/30 10:00:00'),
+              '2025/02/31', // 不正な時間
               new Date('1899/12/30 12:00:00'),
               '学習',
               '開発',
+              '技術研修',
               '社内MTG',
-              '技術研修'
+              'サブカテゴリ別予実'
             ]
           ])
         }),
@@ -256,4 +257,4 @@ describe('SpreadsheetAdapter', () => {
       expect(mockSheet.getRange).toHaveBeenCalledWith(1, 1, 1, 7);
     });
   });
-});                
+});                        
