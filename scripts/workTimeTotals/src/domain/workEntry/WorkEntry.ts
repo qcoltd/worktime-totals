@@ -7,7 +7,8 @@ interface WorkEntryProps {
   endTime: string;
   mainCategory: string;
   subCategory: string;
-  description: string;
+  meeting?: string;
+  workContent: string;
 }
 
 export class WorkEntry {
@@ -16,7 +17,8 @@ export class WorkEntry {
   private readonly _endTime: string;
   private readonly _mainCategory: string;
   private readonly _subCategory: string;
-  private readonly _description: string;
+  private readonly _meeting: string;
+  private readonly _workContent: string;
 
   constructor(props: WorkEntryProps) {
     this.validateProps(props);
@@ -26,7 +28,8 @@ export class WorkEntry {
     this._endTime = props.endTime;
     this._mainCategory = props.mainCategory;
     this._subCategory = props.subCategory;
-    this._description = props.description;
+    this._meeting = props.meeting || '';
+    this._workContent = props.workContent;
   }
 
   private validateProps(props: WorkEntryProps): void {
@@ -157,7 +160,7 @@ export class WorkEntry {
           cellData: {
             row: 0,
             values: [props.date, props.startTime, props.endTime, props.mainCategory, props.subCategory],
-            expectedFormat: '日付 | 開始時刻 | 終了時刻 | メインカテゴリ | サブカテゴリ | 説明'
+            expectedFormat: '日付 | 開始時刻 | 終了時刻 | メインカテゴリ | サブカテゴリ | MTG | 業務内容'
           }
         }
       );
@@ -184,7 +187,15 @@ export class WorkEntry {
   get subCategory(): string {
     return this._subCategory;
   }
+  get meeting(): string {
+    return this._meeting;
+  }
+  get workContent(): string {
+    return this._workContent;
+  }
+  
+  // 後方互換性のために残す
   get description(): string {
-    return this._description;
+    return this._workContent;
   }
 }
