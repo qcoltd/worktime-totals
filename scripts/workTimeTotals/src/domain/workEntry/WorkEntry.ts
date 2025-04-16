@@ -160,7 +160,7 @@ export class WorkEntry {
           cellData: {
             row: 0,
             values: [props.date, props.startTime, props.endTime, props.mainCategory, props.subCategory],
-            expectedFormat: '日付 | 開始時刻 | 終了時刻 | メインカテゴリ | サブカテゴリ | 説明'
+            expectedFormat: '日付 | 開始時刻 | 終了時刻 | メインカテゴリ | サブカテゴリ | MTG | 業務内容'
           }
         }
       );

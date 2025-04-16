@@ -98,14 +98,23 @@ export class WorkEntryRepository implements WorkEntryRepositoryInterface {
           entries.add(entry);
         } catch (error) {
           if (error instanceof WorktimeError) {
+            const rowValues = JSON.stringify(row, (key, value) => {
+              if (value instanceof Date) {
+                return `Date(${value.toISOString()})`;
+              }
+              return value;
+            });
+            
+            console.log(`デバッグ: 行${index + 3}の値: ${rowValues}`);
+            
             // エラーの詳細情報を含めた新しいエラーを作成
             const details = {
               errorLocation: `行: ${index + 3}`,
               message: error.details?.message || error.message,
               cellData: {
                 row: index + 3,
-                values: row,
-                expectedFormat: '日付 | 開始時刻 | 終了時刻 | メインカテゴリ | サブカテゴリ | 説明'
+                values: JSON.parse(rowValues), // 実際の値を表示するために文字列化したものを使用
+                expectedFormat: '日付 | 開始時刻 | 終了時刻 | メインカテゴリ | サブカテゴリ | MTG | 業務内容'
               },
               // 元のエラーの詳細情報も保持
               originalError: error.details
@@ -143,4 +152,4 @@ export class WorkEntryRepository implements WorkEntryRepositoryInterface {
     const minutes = date.getMinutes().toString().padStart(2, '0');
     return `${hours}:${minutes}`;
   }
-}    
+}        
