@@ -43,9 +43,9 @@ describe('SpreadsheetAdapter', () => {
               new Date('1899/12/30 12:00:00'),
               '学習',
               '開発',
-              '技術研修',
               '社内MTG',
-              'サブカテゴリ別予実'
+              '',
+              '技術研修'
             ]
           ])
         }),
@@ -81,9 +81,9 @@ describe('SpreadsheetAdapter', () => {
               new Date('1899/12/30 12:00:00'),
               '学習',
               '開発',
-              '技術研修',
               '社内MTG',
-              'サブカテゴリ別予実'
+              '',
+              '技術研修'
             ],
             [null, null, null, '', '', '', ''], // 空の行
             [
@@ -91,9 +91,9 @@ describe('SpreadsheetAdapter', () => {
               new Date('1899/12/30 15:00:00'),
               '運用',
               '定例作業',
-              '日次確認',
               '',
-              'サブカテゴリ別予実'
+              '',
+              '日次確認'
             ]
           ])
         }),
@@ -119,9 +119,9 @@ describe('SpreadsheetAdapter', () => {
               '12:00',
               '学習',
               '開発',
-              '技術研修',
               '社内MTG',
-              'サブカテゴリ別予実'
+              '',
+              '技術研修'
             ]
           ])
         }),
@@ -169,9 +169,9 @@ describe('SpreadsheetAdapter', () => {
               new Date('1899/12/30 12:00:00'),
               '学習',
               '開発',
-              '技術研修',
               '社内MTG',
-              'サブカテゴリ別予実'
+              '',
+              '技術研修'
             ]
           ])
         }),
@@ -257,4 +257,4 @@ describe('SpreadsheetAdapter', () => {
       expect(mockSheet.getRange).toHaveBeenCalledWith(1, 1, 1, 7);
     });
   });
-});                        
+});                                
