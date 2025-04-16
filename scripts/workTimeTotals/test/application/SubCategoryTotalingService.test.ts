@@ -17,7 +17,8 @@ describe('SubCategoryTotalingService', () => {
           endTime: '12:00', // 3時間
           mainCategory: 'WEB開発',
           subCategory: 'コーディング',
-          description: 'タスク1'
+          meeting: '',
+          workContent: 'タスク1'
         }),
         new WorkEntry({
           date: new Date('2024/03/01'),
@@ -79,7 +80,8 @@ describe('SubCategoryTotalingService', () => {
           endTime: '12:00', // 3時間
           mainCategory: 'WEB開発',
           subCategory: 'コーディング',
-          description: 'タスク1'
+          meeting: '',
+          workContent: 'タスク1'
         }),
         new WorkEntry({
           date: new Date('2024/03/01'),
@@ -107,4 +109,4 @@ describe('SubCategoryTotalingService', () => {
       expect(emp1?.totals.find(t => t.subCategory === 'コーディング')?.hours).toBe(7);
     });
   });
-}); 
+});  

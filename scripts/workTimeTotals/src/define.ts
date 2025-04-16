@@ -19,7 +19,8 @@ export const TOTALING_SHEET = {
       END_TIME: 'C',
       MAIN_CATEGORY: 'D',
       SUB_CATEGORY: 'E',
-      DESCRIPTION: 'F'
+      MEETING: 'F',
+      WORK_CONTENT: 'G'
     },
     DASHBOARD: {
       START_DATE: 'A2',

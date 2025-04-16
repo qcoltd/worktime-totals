@@ -13,7 +13,8 @@ describe('WorkEntryCollection', () => {
         endTime: '12:00',
         mainCategory: '学習',
         subCategory: '開発',
-        description: '技術研修'
+        meeting: '',
+        workContent: '技術研修'
       });
 
       collection.add(entry);
@@ -29,7 +30,8 @@ describe('WorkEntryCollection', () => {
         endTime: '12:00',
         mainCategory: '学習',
         subCategory: '開発',
-        description: '技術研修'
+        meeting: '',
+        workContent: '技術研修'
       });
       const entry2 = new WorkEntry({
         date: new Date('2025/02/13'),
@@ -80,7 +82,8 @@ describe('WorkEntryCollection', () => {
         endTime: '12:00',
         mainCategory: '学習',
         subCategory: '開発',
-        description: '技術研修'
+        meeting: '',
+        workContent: '技術研修'
       }));
       collection.add(new WorkEntry({
         date: new Date('2025/02/12'),
@@ -259,4 +262,4 @@ describe('WorkEntryCollection', () => {
       expect(overtimeByDate.get(date2Str)).toBe(2);
     });
   });
-}); 
+});  

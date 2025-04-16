@@ -12,7 +12,8 @@ describe('CategoryCalculator', () => {
           endTime: '12:00', // 3時間
           mainCategory: 'WEB開発',
           subCategory: 'コーディング',
-          description: 'タスク1'
+          meeting: '',
+          workContent: 'タスク1'
         }),
         new WorkEntry({
           date: new Date('2024/03/01'),
@@ -45,7 +46,8 @@ describe('CategoryCalculator', () => {
           endTime: '12:00', // 3時間
           mainCategory: 'WEB開発',
           subCategory: 'コーディング',
-          description: 'タスク1'
+          meeting: '',
+          workContent: 'タスク1'
         }),
         new WorkEntry({
           date: new Date('2024/03/01'),
@@ -78,7 +80,8 @@ describe('CategoryCalculator', () => {
           endTime: '01:00', // 3時間
           mainCategory: 'WEB開発',
           subCategory: 'コーディング',
-          description: 'タスク1'
+          meeting: '',
+          workContent: 'タスク1'
         }),
         new WorkEntry({
           date: new Date('2024/03/01'),
@@ -104,7 +107,8 @@ describe('CategoryCalculator', () => {
           endTime: '12:00', // 3時間
           mainCategory: 'WEB開発',
           subCategory: 'コーディング',
-          description: 'タスク1'
+          meeting: '',
+          workContent: 'タスク1'
         }),
         new WorkEntry({
           date: new Date('2024/03/01'),
@@ -130,4 +134,4 @@ describe('CategoryCalculator', () => {
       expect(totals.get('定例作業')).toBeUndefined(); // 他のメインカテゴリは含まれない
     });
   });
-}); 
+});  
