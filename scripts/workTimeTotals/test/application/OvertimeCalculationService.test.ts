@@ -17,7 +17,8 @@ describe('OvertimeCalculationService', () => {
           endTime: '18:00', // 1時間の残業
           mainCategory: 'WEB開発',
           subCategory: 'コーディング',
-          description: 'タスク1'
+          meeting: '',
+          workContent: 'タスク1'
         }),
         new WorkEntry({
           date: new Date('2024/03/08'),
@@ -25,7 +26,8 @@ describe('OvertimeCalculationService', () => {
           endTime: '19:00', // 2時間の残業
           mainCategory: 'WEB開発',
           subCategory: 'テスト',
-          description: 'タスク2'
+          meeting: '',
+          workContent: 'タスク2'
         })
       ]);
 
@@ -37,7 +39,8 @@ describe('OvertimeCalculationService', () => {
           endTime: '20:00', // 3時間の残業
           mainCategory: 'WEB開発',
           subCategory: 'コーディング',
-          description: 'タスク3'
+          meeting: '',
+          workContent: 'タスク3'
         })
       ]);
 

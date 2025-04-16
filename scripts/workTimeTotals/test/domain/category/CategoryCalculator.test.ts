@@ -12,7 +12,8 @@ describe('CategoryCalculator', () => {
           endTime: '12:00', // 3時間
           mainCategory: 'WEB開発',
           subCategory: 'コーディング',
-          description: 'タスク1'
+          meeting: '',
+          workContent: 'タスク1'
         }),
         new WorkEntry({
           date: new Date('2024/03/01'),
@@ -20,7 +21,8 @@ describe('CategoryCalculator', () => {
           endTime: '17:00', // 4時間
           mainCategory: 'WEB開発',
           subCategory: 'テスト',
-          description: 'タスク2'
+          meeting: '',
+          workContent: 'タスク2'
         }),
         new WorkEntry({
           date: new Date('2024/03/01'),
@@ -28,7 +30,8 @@ describe('CategoryCalculator', () => {
           endTime: '18:00', // 1時間
           mainCategory: '運用',
           subCategory: '定例作業',
-          description: 'タスク3'
+          meeting: '',
+          workContent: 'タスク3'
         })
       ];
 
@@ -45,7 +48,8 @@ describe('CategoryCalculator', () => {
           endTime: '12:00', // 3時間
           mainCategory: 'WEB開発',
           subCategory: 'コーディング',
-          description: 'タスク1'
+          meeting: '',
+          workContent: 'タスク1'
         }),
         new WorkEntry({
           date: new Date('2024/03/01'),
@@ -53,7 +57,8 @@ describe('CategoryCalculator', () => {
           endTime: '13:00', // 1時間（休憩）
           mainCategory: '休憩',
           subCategory: '休憩',
-          description: 'お昼休憩'
+          meeting: '',
+          workContent: 'お昼休憩'
         }),
         new WorkEntry({
           date: new Date('2024/03/01'),
@@ -61,7 +66,8 @@ describe('CategoryCalculator', () => {
           endTime: '15:00', // 2時間
           mainCategory: 'WEB開発',
           subCategory: 'テスト',
-          description: 'タスク2'
+          meeting: '',
+          workContent: 'タスク2'
         })
       ];
 
@@ -78,7 +84,8 @@ describe('CategoryCalculator', () => {
           endTime: '01:00', // 3時間
           mainCategory: 'WEB開発',
           subCategory: 'コーディング',
-          description: 'タスク1'
+          meeting: '',
+          workContent: 'タスク1'
         }),
         new WorkEntry({
           date: new Date('2024/03/01'),
@@ -86,7 +93,8 @@ describe('CategoryCalculator', () => {
           endTime: '17:00', // 8時間
           mainCategory: 'WEB開発',
           subCategory: 'テスト',
-          description: 'タスク2'
+          meeting: '',
+          workContent: 'タスク2'
         })
       ];
 
@@ -104,7 +112,8 @@ describe('CategoryCalculator', () => {
           endTime: '12:00', // 3時間
           mainCategory: 'WEB開発',
           subCategory: 'コーディング',
-          description: 'タスク1'
+          meeting: '',
+          workContent: 'タスク1'
         }),
         new WorkEntry({
           date: new Date('2024/03/01'),
@@ -112,7 +121,8 @@ describe('CategoryCalculator', () => {
           endTime: '17:00', // 4時間
           mainCategory: 'WEB開発',
           subCategory: 'テスト',
-          description: 'タスク2'
+          meeting: '',
+          workContent: 'タスク2'
         }),
         new WorkEntry({
           date: new Date('2024/03/01'),
@@ -120,7 +130,8 @@ describe('CategoryCalculator', () => {
           endTime: '18:00', // 1時間
           mainCategory: '運用',
           subCategory: '定例作業',
-          description: 'タスク3'
+          meeting: '',
+          workContent: 'タスク3'
         })
       ];
 

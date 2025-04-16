@@ -13,7 +13,8 @@ describe('OvertimeCalculator', () => {
           endTime: '18:00', // 1時間の残業
           mainCategory: 'WEB開発',
           subCategory: 'コーディング',
-          description: 'タスク1'
+          meeting: '',
+          workContent: 'タスク1'
         }),
         new WorkEntry({
           date: new Date('2024/03/02'),
@@ -21,7 +22,8 @@ describe('OvertimeCalculator', () => {
           endTime: '19:00', // 2時間の残業
           mainCategory: 'WEB開発',
           subCategory: 'テスト',
-          description: 'タスク2'
+          meeting: '',
+          workContent: 'タスク2'
         })
       ];
 
@@ -36,7 +38,8 @@ describe('OvertimeCalculator', () => {
           endTime: '18:00',
           mainCategory: 'WEB開発',
           subCategory: 'コーディング',
-          description: 'タスク1'
+          meeting: '',
+          workContent: 'タスク1'
         }),
         new WorkEntry({
           date: new Date('2024/03/01'),
@@ -44,7 +47,8 @@ describe('OvertimeCalculator', () => {
           endTime: '13:00',
           mainCategory: '休憩',
           subCategory: '休憩',
-          description: 'お昼休憩'
+          meeting: '',
+          workContent: 'お昼休憩'
         })
       ];
 
@@ -59,7 +63,8 @@ describe('OvertimeCalculator', () => {
           endTime: '02:00', // 翌日2時まで（7時間の作業）
           mainCategory: 'WEB開発',
           subCategory: 'コーディング',
-          description: 'タスク1'
+          meeting: '',
+          workContent: 'タスク1'
         })
       ];
 
@@ -74,7 +79,8 @@ describe('OvertimeCalculator', () => {
           endTime: '02:00', // 翌日2時まで（17時間の作業）
           mainCategory: 'WEB開発',
           subCategory: 'コーディング',
-          description: 'タスク1'
+          meeting: '',
+          workContent: 'タスク1'
         })
       ];
 
@@ -94,7 +100,8 @@ describe('OvertimeCalculator', () => {
           endTime: '18:00', // 1時間の残業
           mainCategory: 'WEB開発',
           subCategory: 'コーディング',
-          description: 'タスク1'
+          meeting: '',
+          workContent: 'タスク1'
         }),
         new WorkEntry({
           date: date2,
@@ -102,7 +109,8 @@ describe('OvertimeCalculator', () => {
           endTime: '19:00', // 2時間の残業
           mainCategory: 'WEB開発',
           subCategory: 'テスト',
-          description: 'タスク2'
+          meeting: '',
+          workContent: 'タスク2'
         })
       ];
 
