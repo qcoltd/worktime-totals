@@ -39,7 +39,8 @@ describe('WorkEntryCollection', () => {
         endTime: '15:00',
         mainCategory: '学習',
         subCategory: '開発',
-        description: '技術研修2日目'
+        meeting: '',
+        workContent: '技術研修2日目'
       });
 
       collection.add(entry1);
@@ -262,4 +263,4 @@ describe('WorkEntryCollection', () => {
       expect(overtimeByDate.get(date2Str)).toBe(2);
     });
   });
-});  
+});    
