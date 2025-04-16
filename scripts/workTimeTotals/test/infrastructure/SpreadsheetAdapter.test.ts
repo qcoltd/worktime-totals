@@ -44,7 +44,6 @@ describe('SpreadsheetAdapter', () => {
               '学習',
               '開発',
               '社内MTG',
-              '',
               '技術研修'
             ]
           ])
@@ -82,10 +81,9 @@ describe('SpreadsheetAdapter', () => {
               '学習',
               '開発',
               '社内MTG',
-              '',
               '技術研修'
             ],
-            [null, null, null, '', '', '', ''], // 空の行
+            [null, null, null, '', '', ''], // 空の行
             [
               new Date('1899/12/30 13:00:00'),
               new Date('1899/12/30 15:00:00'),
@@ -120,7 +118,6 @@ describe('SpreadsheetAdapter', () => {
               '学習',
               '開発',
               '社内MTG',
-              '',
               '技術研修'
             ]
           ])
@@ -170,7 +167,6 @@ describe('SpreadsheetAdapter', () => {
               '学習',
               '開発',
               '社内MTG',
-              '',
               '技術研修'
             ]
           ])
@@ -257,4 +253,4 @@ describe('SpreadsheetAdapter', () => {
       expect(mockSheet.getRange).toHaveBeenCalledWith(1, 1, 1, 7);
     });
   });
-});                                
+});                                        

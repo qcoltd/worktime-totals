@@ -137,7 +137,7 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
         mainCategory: row[2]?.toString() || '',
         subCategory: row[3]?.toString() || '',
         meeting: row[4]?.toString() || '',
-        workContent: row[6]?.toString() || ''
+        workContent: row[5]?.toString() || ''
       });
     } catch (error) {
       if (error instanceof WorktimeError) {
@@ -253,4 +253,4 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
       );
     }
   }
-}                          
+}                            
