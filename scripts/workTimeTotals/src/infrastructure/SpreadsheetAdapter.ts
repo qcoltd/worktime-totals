@@ -61,7 +61,7 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
               cellData: {
                 row: index + 3,
                 values: row,
-                expectedFormat: '日付 | 開始時刻 | 終了時刻 | メインカテゴリ | サブカテゴリ | 説明'
+                expectedFormat: '日付 | 開始時刻 | 終了時刻 | メインカテゴリ | サブカテゴリ | MTG | 業務内容'
               }
             }
           );
@@ -118,11 +118,15 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
       const dateValue = row[0];
       let parsedDate: Date;
       if (typeof dateValue === 'string') {
-        parsedDate = dayjsLib.parse(dateValue).toDate();
+        try {
+          parsedDate = dayjsLib.parse(dateValue).toDate();
+        } catch (error) {
+          throw new Error(`日付の形式が不正です: ${dateValue}`);
+        }
       } else if (dateValue instanceof Date) {
         parsedDate = dateValue;
       } else {
-        throw new Error('Invalid date format');
+        throw new Error('日付の形式が不正です');
       }
 
       const formatTime = (date: Date): string => {
@@ -231,4 +235,4 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
     const dataRange = range ? sheet.getRange(range) : sheet.getDataRange();
     return dataRange.getValues();
   }
-}       
+}           
