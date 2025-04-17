@@ -10,7 +10,8 @@ export class WorktimeCollectionService {
     private readonly employeeSheetRepo: EmployeeSheetRepository
   ) {}
 
-  private getDateSheetNames(spreadsheetId: string): string[] {
+  // 指定された期間内のシート名のみを取得
+  private getTargetDateSheets(spreadsheetId: string, startDate: Date, endDate: Date): string[] {
     const adapter = new SpreadsheetAdapter(spreadsheetId, '');
     const sheetNames = adapter.getSheetNames();
     const datePattern = /^\d{8}$/;  // 8桁の数字のみ
@@ -18,8 +19,23 @@ export class WorktimeCollectionService {
     return sheetNames.filter(name => {
       // 数字以外の文字を削除
       const numbersOnly = name.replace(/\D/g, '');
-      // 8桁の数字かどうかをチェック
-      return datePattern.test(numbersOnly);
+      // 8桁の数字でない場合はスキップ
+      if (!datePattern.test(numbersOnly)) {
+        return false;
+      }
+
+      // シート名から日付を取得
+      const year = parseInt(numbersOnly.substring(0, 4));
+      const month = parseInt(numbersOnly.substring(4, 6)) - 1;
+      const day = parseInt(numbersOnly.substring(6, 8));
+      const sheetDate = new Date(year, month, day);
+
+      // 日付文字列に変換して比較
+      const sheetDateStr = dayjsLib.formatDate(sheetDate);
+      const startDateStr = dayjsLib.formatDate(startDate);
+      const endDateStr = dayjsLib.formatDate(endDate);
+
+      return sheetDateStr >= startDateStr && sheetDateStr <= endDateStr;
     });
   }
 
@@ -32,28 +48,29 @@ export class WorktimeCollectionService {
 
       // 各従業員の作業時間を取得
       employeeSheets.forEach(sheet => {
-        // 従業員の作業データスプレッドシートから日付シートを取得
-        const dateSheets = this.getDateSheetNames(sheet.spreadsheetId);
+        // 対象期間内の日付シートのみを取得
+        const targetDateSheets = this.getTargetDateSheets(sheet.spreadsheetId, startDate, endDate);
         const allEntries = new WorkEntryCollection();
 
-        // 各日付シートからデータを取得
-        dateSheets.forEach(sheetName => {
+        // 各シートからデータを取得
+        targetDateSheets.forEach(sheetName => {
           const repository = new WorkEntryRepository(sheet.spreadsheetId);
           repository.setSheetName(sheetName);
           try {
-            const entries = repository.findAll();
+            // findAllに期間を渡して、期間内のデータのみを取得・検証
+            const entries = repository.findByDateRange(startDate, endDate);
             entries.entries.forEach(entry => {
               allEntries.add(entry);
             });
           } catch (error) {
-            console.error(`Failed to read sheet ${sheetName} for ${sheet.name}:`, error);  // ログにエラーを出力
+            console.error(`Failed to read sheet ${sheetName} for ${sheet.name}:`, error);
             throw new WorktimeError(
               `Failed to read sheet ${sheetName} for ${sheet.name}`,
               ErrorCodes.SHEET_ACCESS_ERROR,
               {
                 spreadsheetId: sheet.spreadsheetId,
                 spreadsheetName: sheet.name,
-                sheetName: sheetName,  // エラーが発生した実際のシート名
+                sheetName: sheetName,
                 errorLocation: `従業員: ${sheet.name}, シート: ${sheetName}`,
                 message: error instanceof Error ? error.message : '不明なエラー'
               }
@@ -61,23 +78,15 @@ export class WorktimeCollectionService {
           }
         });
 
-        // 期間でフィルタリング
-        const filteredEntries = new WorkEntryCollection(
-          allEntries.entries.filter(entry => {
-            return entry.date >= startDate && entry.date <= endDate;
-          })
-        );
-
-        results.set(sheet.name, filteredEntries);
+        results.set(sheet.name, allEntries);
       });
 
       return results;
     } catch (error) {
       if (error instanceof WorktimeError) {
-        // 元のエラー情報を保持
         const errorDetails = error.details;
         throw new WorktimeError(
-          error.message,  // 元のエラーメッセージを保持
+          error.message,
           ErrorCodes.SHEET_ACCESS_ERROR,
           {
             spreadsheetId: errorDetails?.spreadsheetId,
