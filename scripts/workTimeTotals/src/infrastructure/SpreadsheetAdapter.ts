@@ -36,22 +36,47 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
         );
       }
 
-      const dataRange = sheet.getRange('I3:N');
+      // 全てのデータを取得してから必要な列を選別する方法も試す
+      // データの詳細をログに出力
+      console.log(`シート「${this.sheetName}」のデータ取得を開始`);
+      
+      // まずは通常の範囲でデータを取得
+      const dataRange = sheet.getRange('J3:P');
+      console.log(`範囲 J3:P を読み込み`);
       const rows = dataRange.getValues();
+
+      // データサンプルをログに出力
+      if (rows.length > 0) {
+        console.log(`行数: ${rows.length}, 列数: ${rows[0].length}`);
+        console.log(`データサンプル (1行目):`, JSON.stringify(rows[0], (key, value) => {
+          if (value instanceof Date) {
+            return `Date(${value.toISOString()})`;
+          }
+          return value;
+        }));
+      } else {
+        console.log('データが見つかりませんでした');
+      }
 
       const headers = [
         'date', 'startTime', 'endTime',
-        'mainCategory', 'subCategory', 'description'
+        'mainCategory', 'subCategory', 'meeting', 'workContent'
       ];
 
       const collection = new WorkEntryCollection();
       rows.forEach((row, index) => {
+        // 完全に空の行はスキップ
+        if (row.every(cell => !cell)) return;
+        // 最初の3つが空の場合もスキップ（従来の条件）
         if (!row[0] && !row[1] && !row[2]) return;
 
         try {
           const entry = this.createWorkEntryFromRow(row, headers);
           collection.add(entry);
         } catch (error) {
+          console.error(`行 ${index + 3} の処理中にエラー:`, error);
+          // ここでの例外は上に投げずにログに残し、処理を続行することもできる
+          // この例ではエラーを上に投げる従来の挙動を維持
           throw new WorktimeError(
             `Failed to parse row ${index + 3}`,
             ErrorCodes.INVALID_SHEET_FORMAT,
@@ -61,7 +86,7 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
               cellData: {
                 row: index + 3,
                 values: row,
-                expectedFormat: '日付 | 開始時刻 | 終了時刻 | メインカテゴリ | サブカテゴリ | 説明'
+                expectedFormat: '日付 | 開始時刻 | 終了時刻 | メインカテゴリ | サブカテゴリ | MTG | 業務内容'
               }
             }
           );
@@ -92,7 +117,7 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
 
     const headers = [
       'date', 'startTime', 'endTime',
-      'mainCategory', 'subCategory', 'description'
+      'mainCategory', 'subCategory', 'meeting', 'workContent'
     ];
 
     const rows = entries.entries.map(entry => [
@@ -101,7 +126,8 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
       entry.endTime,
       entry.mainCategory,
       entry.subCategory,
-      entry.description
+      entry.meeting,
+      entry.workContent
     ]);
 
     sheet.clear();
@@ -114,6 +140,14 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
   // TODO: any型を解決する
   private createWorkEntryFromRow(row: any[], headers: string[]): WorkEntry {
     try {
+      // デバッグログを追加
+      console.log('createWorkEntryFromRow - 元データ:', JSON.stringify(row, (key, value) => {
+        if (value instanceof Date) {
+          return `Date(${value.toISOString()})`;
+        }
+        return value;
+      }));
+      
       const dateValue = row[0];
       let parsedDate: Date;
       if (typeof dateValue === 'string') {
@@ -130,16 +164,46 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
         return `${hours}:${minutes}`;
       };
 
-      const startTime = row[1] instanceof Date ? formatTime(row[1]) : row[1]?.toString() || '';
-      const endTime = row[2] instanceof Date ? formatTime(row[2]) : row[2]?.toString() || '';
+      // 日時型データの処理を改善
+      let startTime = '';
+      if (row[1] instanceof Date) {
+        startTime = formatTime(row[1]);
+      } else if (typeof row[1] === 'string') {
+        startTime = row[1];
+      }
+
+      let endTime = '';
+      if (row[2] instanceof Date) {
+        endTime = formatTime(row[2]);
+      } else if (typeof row[2] === 'string') {
+        endTime = row[2];
+      }
+
+      // カテゴリなどの位置が正しいか確認
+      const mainCategory = row[3]?.toString() || '';
+      const subCategory = row[4]?.toString() || '';
+      const meeting = row[5]?.toString() || '';
+      const workContent = row[6]?.toString() || '';
+
+      // データの内容をデバッグ
+      console.log('処理後データ:', {
+        date: parsedDate,
+        startTime,
+        endTime,
+        mainCategory,
+        subCategory,
+        meeting,
+        workContent
+      });
 
       return new WorkEntry({
         date: parsedDate,
         startTime,
         endTime,
-        mainCategory: row[3]?.toString() || '',
-        subCategory: row[4]?.toString() || '',
-        description: row[5]?.toString() || ''
+        mainCategory,
+        subCategory,
+        meeting,
+        workContent
       });
     } catch (error) {
       if (error instanceof WorktimeError) {
