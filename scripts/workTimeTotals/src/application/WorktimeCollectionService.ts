@@ -14,20 +14,18 @@ export class WorktimeCollectionService {
   private getTargetDateSheets(spreadsheetId: string, startDate: Date, endDate: Date): string[] {
     const adapter = new SpreadsheetAdapter(spreadsheetId, '');
     const sheetNames = adapter.getSheetNames();
-    const datePattern = /^\d{8}$/;  // 8桁の数字のみ
+    const datePattern = /^\d{4}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])$/;  // YYYYMMDDの形式のみ
 
     return sheetNames.filter(name => {
-      // 数字以外の文字を削除
-      const numbersOnly = name.replace(/\D/g, '');
-      // 8桁の数字でない場合はスキップ
-      if (!datePattern.test(numbersOnly)) {
+      // YYYYMMDDの形式でない場合はスキップ
+      if (!datePattern.test(name)) {
         return false;
       }
 
-      // シート名から日付を取得
-      const year = parseInt(numbersOnly.substring(0, 4));
-      const month = parseInt(numbersOnly.substring(4, 6)) - 1;
-      const day = parseInt(numbersOnly.substring(6, 8));
+      // シート名から日付を取得（すでにYYYYMMDD形式であることは確認済み）
+      const year = parseInt(name.substring(0, 4));
+      const month = parseInt(name.substring(4, 6)) - 1;
+      const day = parseInt(name.substring(6, 8));
       const sheetDate = new Date(year, month, day);
 
       // 日付文字列に変換して比較
