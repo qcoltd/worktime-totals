@@ -22,6 +22,10 @@ export class DashboardRepository {
       // プロジェクトリストの取得
       const projectsValue = sheet.getRange(TOTALING_SHEET.COLUMNS.DASHBOARD.PROJECTS).getValue();
       
+      // 出力選択チェックボックスの取得
+      const outputOvertimeAndCategoryValue = sheet.getRange(TOTALING_SHEET.COLUMNS.DASHBOARD.OUTPUT_OVERTIME_AND_CATEGORY).getValue();
+      const outputProjectBreakdownValue = sheet.getRange(TOTALING_SHEET.COLUMNS.DASHBOARD.OUTPUT_PROJECT_BREAKDOWN).getValue();
+      
       // 日付の変換
       const startDate = dayjsLib.parse(startDateValue).toDate();
       const endDate = dayjsLib.parse(endDateValue).toDate();
@@ -33,10 +37,16 @@ export class DashboardRepository {
         .map(project => project.trim())
         .filter(project => project !== '');
 
+      // チェックボックスの値をブール値に変換（チェックボックスはtrueまたはfalseで返されるが、念のため変換）
+      const outputOvertimeAndCategory = Boolean(outputOvertimeAndCategoryValue);
+      const outputProjectBreakdown = Boolean(outputProjectBreakdownValue);
+
       return {
         startDate,
         endDate,
-        targetProjects
+        targetProjects,
+        outputOvertimeAndCategory,
+        outputProjectBreakdown
       };
     } catch (error) {
       throw new WorktimeError(

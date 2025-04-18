@@ -24,7 +24,9 @@ export const TOTALING_SHEET = {
     DASHBOARD: {
       START_DATE: 'A2',
       END_DATE: 'B2',
-      PROJECTS: 'C2'
+      PROJECTS: 'C2',
+      OUTPUT_OVERTIME_AND_CATEGORY: 'B5', // 残業時間と業務比率の出力チェックボックス
+      OUTPUT_PROJECT_BREAKDOWN: 'B6'      // 案件別作業時間の内訳の出力チェックボックス
     }
   }
 } as const;

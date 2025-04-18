@@ -24,6 +24,21 @@ function main() {
     // 集計対象の期間を設定
     const startDate = settings.startDate;
     const endDate = settings.endDate;
+    
+    // 出力設定を取得
+    const outputOvertimeAndCategory = settings.outputOvertimeAndCategory;
+    const outputProjectBreakdown = settings.outputProjectBreakdown;
+    
+    // どちらの出力も選択されていない場合は処理を終了
+    if (!outputOvertimeAndCategory && !outputProjectBreakdown) {
+      console.log('出力が選択されていません。ダッシュボードで出力項目を選択してください。');
+      // 警告モーダルを表示
+      ErrorModalPresenter.showWarning(
+        '出力項目が未選択です',
+        'ダッシュボードで出力項目を選択してください。'
+      );
+      return;
+    }
 
     // サービスの初期化
     const employeeRepo = new EmployeeSheetRepository();
@@ -40,6 +55,7 @@ function main() {
     // 作業時間の集計
     console.log('\n=== 作業時間集計 ===');
     console.log(`期間: ${startDate.toLocaleDateString()} 〜 ${endDate.toLocaleDateString()}`);
+    console.log(`選択された出力: ${outputOvertimeAndCategory ? '残業時間と業務比率' : ''}${outputOvertimeAndCategory && outputProjectBreakdown ? ', ' : ''}${outputProjectBreakdown ? '案件別作業時間内訳' : ''}`);
 
     const workEntries = worktimeService.collectWorkEntries(startDate, endDate);
     // エラーが発生した場合、ここで処理が止まる
@@ -56,7 +72,7 @@ function main() {
       });
     });
 
-    // 残業時間の集計
+    // 残業時間の集計（両方の出力に必要なので常に実行）
     console.log('\n=== 残業時間集計 ===');
     
     // WorkEntryCollectionからWorkEntry[]に変換
@@ -179,25 +195,32 @@ function main() {
       subCategoryOutput
     );
 
-    // 残業時間と業務比率の出力
-    worktimeOutput.visualizeOvertimeAndCategory(overtimeSummaries, entriesForOvertime);
+    // 残業時間と業務比率の出力（フラグがオンの場合のみ）
+    if (outputOvertimeAndCategory) {
+      console.log('\n残業時間と業務比率の出力を実行します...');
+      worktimeOutput.visualizeOvertimeAndCategory(overtimeSummaries, entriesForOvertime);
+    }
 
-    // 案件別作業時間の内訳を出力
-    // Filter entries by the target main categories before visualization
-    const projectFilteredEntries = new Map<string, WorkEntry[]>();
+    // 案件別作業時間の内訳を出力（フラグがオンの場合のみ）
+    if (outputProjectBreakdown) {
+      console.log('\n案件別作業時間の内訳の出力を実行します...');
+      
+      // Filter entries by the target main categories before visualization
+      const projectFilteredEntries = new Map<string, WorkEntry[]>();
 
-    entriesForOvertime.forEach((entries, name) => {
-      // Filter entries that belong to the target projects (main categories)
-      const filteredEntries = entries.filter(entry =>
-        targetMainCategories.includes(entry.mainCategory)
-      );
+      entriesForOvertime.forEach((entries, name) => {
+        // Filter entries that belong to the target projects (main categories)
+        const filteredEntries = entries.filter(entry =>
+          targetMainCategories.includes(entry.mainCategory)
+        );
 
-      if (filteredEntries.length > 0) {
-        projectFilteredEntries.set(name, filteredEntries);
-      }
-    });
+        if (filteredEntries.length > 0) {
+          projectFilteredEntries.set(name, filteredEntries);
+        }
+      });
 
-    worktimeOutput.visualizeProjectBreakdown(projectFilteredEntries);
+      worktimeOutput.visualizeProjectBreakdown(projectFilteredEntries);
+    }
 
   } catch (error) {
     if (error instanceof WorktimeError) {
