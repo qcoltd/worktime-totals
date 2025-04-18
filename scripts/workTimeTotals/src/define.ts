@@ -1,6 +1,6 @@
 // NOTE: 内容未調整
 export const TOTALING_SHEET = {
-  SS_ID: import.meta.env.VITE_SS_ID_TOTALING_SHEET,
+  SS_ID: SpreadsheetApp.getActiveSpreadsheet().getId(),
   SHEET_NAME: {
     EMPLOYEE_LIST: '棚卸しシートリスト',
     WORK_ENTRIES: 'WorkEntries',
