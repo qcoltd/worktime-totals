@@ -3,6 +3,7 @@ import { SpreadsheetAdapter } from '../../infrastructure/SpreadsheetAdapter';
 import { TOTALING_SHEET } from '../../define';
 import { WorktimeError, ErrorCodes } from '../error/WorktimeError';
 import { WorkEntry } from './WorkEntry';
+import { dayjsLib } from '../../libs/dayjs';
 
 export interface WorkEntryRepositoryInterface {
   save(entries: WorkEntryCollection): void;
@@ -42,125 +43,76 @@ export class WorkEntryRepository implements WorkEntryRepositoryInterface {
 
   findByDateRange(startDate: Date, endDate: Date): WorkEntryCollection {
     try {
-      const allEntries = this.findAll();
-      return new WorkEntryCollection(
-        allEntries.entries.filter(entry => {
-          const entryDate = entry.date;
-          return entryDate >= startDate && entryDate <= endDate;
-        })
-      );
-    } catch (error) {
-      if (error instanceof WorktimeError) {
-        throw error;
-      }
-      throw new WorktimeError(
-        'Failed to find work entries',
-        ErrorCodes.SHEET_ACCESS_ERROR,
-        error
-      );
-    }
-  }
-
-  private getDateSheetNames(): string[] {
-    const sheetNames = this.adapter.getSheetNames();
-    const datePattern = /^\d{8}$/;  // 8桁の数字のみ
-
-    return sheetNames.filter(name => {
-      // 数字以外の文字を削除
-      const numbersOnly = name.replace(/\D/g, '');
-      // 8桁の数字かどうかをチェック
-      return datePattern.test(numbersOnly);
-    });
-  }
-
-  setSheetName(sheetName: string): void {
-    this.adapter.setSheetName(sheetName);
-  }
-
-  findAll(): WorkEntryCollection {
-    try {
       const values = this.adapter.getValues('J3:P');
       const entries = new WorkEntryCollection();
 
       values.forEach((row, index) => {
         try {
-          if (!row[0] && !row[1] && !row[2]) return;
-
-          // デバッグログを追加して行データの構造を確認
-          console.log(`デバッグ: 行${index + 3}の値:`, JSON.stringify(row, (key, value) => {
-            if (value instanceof Date) {
-              return `Date(${value.toISOString()})`;
-            }
-            return value;
-          }));
-
-          // データ型の処理を改善
-          let dateValue = row[0];
-          let startTimeValue = row[1];
-          let endTimeValue = row[2];
-
-          // 日付の処理
-          let date;
-          if (dateValue instanceof Date) {
-            date = dateValue;
-          } else if (typeof dateValue === 'string') {
-            try {
-              // 文字列から日付への変換を試みる
-              date = new Date(dateValue);
-              if (isNaN(date.getTime())) {
-                throw new Error(`Invalid date string: ${dateValue}`);
-              }
-            } catch (e) {
-              console.error(`日付変換エラー: ${e}`, dateValue);
-              // デフォルトの日付を使用（シート名から）
-              date = this.extractDateFromSheetName();
-            }
-          } else {
-            console.warn(`未知の日付フォーマット: ${typeof dateValue}`, dateValue);
-            date = this.extractDateFromSheetName();
+          // 完全な空行はスキップ
+          if (!row || row.length === 0 || this.isEmptyRow(row)) {
+            return;
           }
 
+          // 日付の処理
+          const date = this.parseDate(row[0]);
+          
+          // 日付が無効な場合はスキップ
+          if (!date) {
+            return;
+          }
+
+          // 日付が期間外の場合はスキップ
+          const dateStr = dayjsLib.formatDate(date);
+          const startDateStr = dayjsLib.formatDate(startDate);
+          const endDateStr = dayjsLib.formatDate(endDate);
+          
+          if (dateStr < startDateStr || dateStr > endDateStr) {
+            return;
+          }
+
+          // 期間内のデータは必須項目をチェック
+          this.validateRequiredFields(row, index);
+
           // 時刻の処理
+          const startTimeValue = row[1];
+          const endTimeValue = row[2];
           const startTime = startTimeValue instanceof Date 
             ? this.formatTime(startTimeValue) 
-            : startTimeValue?.toString() || '';
+            : startTimeValue?.toString().trim() || '';
           
           const endTime = endTimeValue instanceof Date 
             ? this.formatTime(endTimeValue) 
-            : endTimeValue?.toString() || '';
+            : endTimeValue?.toString().trim() || '';
 
+          // エントリーを作成
           const entry = new WorkEntry({
             date,
             startTime,
             endTime,
-            mainCategory: row[3]?.toString() || '',
-            subCategory: row[4]?.toString() || '',
-            meeting: row[5]?.toString() || '',
-            workContent: row[6]?.toString() || ''
+            mainCategory: row[3]?.toString().trim() || '',
+            subCategory: row[4]?.toString().trim() || '',
+            meeting: row[5]?.toString().trim() || '',
+            workContent: row[6]?.toString().trim() || ''
           });
           entries.add(entry);
+
         } catch (error) {
           if (error instanceof WorktimeError) {
-            // エラーの詳細情報を含めた新しいエラーを作成
-            const details = {
+            throw error;
+          }
+          throw new WorktimeError(
+            `行${index + 3}のデータ読み込みに失敗`,
+            ErrorCodes.INVALID_SHEET_FORMAT,
+            {
               errorLocation: `行: ${index + 3}`,
-              message: error.details?.message || error.message,
+              message: error instanceof Error ? error.message : '不明なエラー',
               cellData: {
                 row: index + 3,
                 values: row,
                 expectedFormat: '日付 | 開始時刻 | 終了時刻 | メインカテゴリ | サブカテゴリ | MTG | 業務内容'
-              },
-              // 元のエラーの詳細情報も保持
-              originalError: error.details
-            };
-
-            throw new WorktimeError(
-              `行${index + 3}のデータ読み込みに失敗: ${error.details?.message || error.message}`,
-              ErrorCodes.INVALID_SHEET_FORMAT,
-              details
-            );
-          }
-          throw error;
+              }
+            }
+          );
         }
       });
 
@@ -181,36 +133,103 @@ export class WorkEntryRepository implements WorkEntryRepositoryInterface {
     }
   }
 
+  findAll(): WorkEntryCollection {
+    return this.findByDateRange(
+      new Date(-8640000000000000), // 最小の日付
+      new Date(8640000000000000)   // 最大の日付
+    );
+  }
+
+  setSheetName(sheetName: string): void {
+    this.adapter.setSheetName(sheetName);
+  }
+
   private formatTime(date: Date): string {
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
     return `${hours}:${minutes}`;
   }
 
-  // シート名から日付を抽出するメソッドを追加
-  private extractDateFromSheetName(): Date {
-    try {
-      const sheetName = this.adapter.sheetName;
-      if (!/^\d{8}$/.test(sheetName)) {
-        throw new Error(`シート名が日付形式ではありません: ${sheetName}`);
+  // 完全な空行かどうかをチェック
+  private isEmptyRow(row: any[]): boolean {
+    return row.every(cell => 
+      cell === undefined || 
+      cell === null || 
+      cell === '' || 
+      (typeof cell === 'string' && cell.trim() === '')
+    );
+  }
+
+  // 日付データをパースする
+  private parseDate(dateValue: any): Date | null {
+    if (!dateValue) return null;
+
+    if (dateValue instanceof Date) {
+      return isNaN(dateValue.getTime()) ? null : dateValue;
+    }
+
+    if (typeof dateValue === 'string') {
+      try {
+        const date = new Date(dateValue);
+        return isNaN(date.getTime()) ? null : date;
+      } catch {
+        return null;
       }
-      
-      const year = parseInt(sheetName.substring(0, 4), 10);
-      const month = parseInt(sheetName.substring(4, 6), 10) - 1; // JavaScriptの月は0-11
-      const day = parseInt(sheetName.substring(6, 8), 10);
-      
-      const date = new Date(year, month, day);
-      
-      if (isNaN(date.getTime())) {
-        throw new Error(`無効な日付です: ${sheetName}`);
-      }
-      
-      return date;
-    } catch (error) {
+    }
+
+    return null;
+  }
+
+  // 必須項目のバリデーション
+  private validateRequiredFields(row: any[], index: number): void {
+    // 開始時刻のチェック
+    if (!row[1]) {
       throw new WorktimeError(
-        `シート名から日付を抽出できませんでした: ${this.adapter.sheetName}`,
+        '開始時刻が未入力です',
         ErrorCodes.INVALID_SHEET_FORMAT,
-        error
+        {
+          errorLocation: `行: ${index + 3}`,
+          message: '開始時刻は必須項目です',
+          cellData: {
+            row: index + 3,
+            values: row,
+            expectedFormat: '日付 | 開始時刻 | 終了時刻 | メインカテゴリ | サブカテゴリ | MTG | 業務内容'
+          }
+        }
+      );
+    }
+
+    // メインカテゴリのチェック
+    if (!row[3]?.toString().trim()) {
+      throw new WorktimeError(
+        'メインカテゴリが未入力です',
+        ErrorCodes.INVALID_SHEET_FORMAT,
+        {
+          errorLocation: `行: ${index + 3}`,
+          message: 'メインカテゴリは必須項目です',
+          cellData: {
+            row: index + 3,
+            values: row,
+            expectedFormat: '日付 | 開始時刻 | 終了時刻 | メインカテゴリ | サブカテゴリ | MTG | 業務内容'
+          }
+        }
+      );
+    }
+
+    // サブカテゴリのチェック
+    if (!row[4]?.toString().trim()) {
+      throw new WorktimeError(
+        'サブカテゴリが未入力です',
+        ErrorCodes.INVALID_SHEET_FORMAT,
+        {
+          errorLocation: `行: ${index + 3}`,
+          message: 'サブカテゴリは必須項目です',
+          cellData: {
+            row: index + 3,
+            values: row,
+            expectedFormat: '日付 | 開始時刻 | 終了時刻 | メインカテゴリ | サブカテゴリ | MTG | 業務内容'
+          }
+        }
       );
     }
   }
