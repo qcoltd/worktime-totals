@@ -38,7 +38,7 @@ export const CATEGORY_MASTER = {
   SUB: {
     SS_ID: import.meta.env.VITE_SS_ID_CATEGORY_SUB,
   },
-  SHEET_NAMES: ['WEB運用', 'WEB開発', 'WEB受託'] as const
+  SHEET_NAMES: ['WEB共通', 'WEB運用', 'WEB開発', 'WEB受託','WEB監督'] as const
 } as const;
 
 export const WORK_TIME = {
