@@ -9,6 +9,10 @@ class DayjsLib {
     return this.getDayjs()(date).format(format);
   }
 
+  addDays(date: Date, days: number) {
+    return this.getDayjs()(date).add(days, 'day');
+  }
+
   parse(date: Date | string) {
     const dayjs = this.getDayjs();
     if (typeof date === 'string') {
