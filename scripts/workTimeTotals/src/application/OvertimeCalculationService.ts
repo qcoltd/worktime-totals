@@ -185,12 +185,7 @@ export class OvertimeCalculationService {
 
     const targetWeek = weeks.find(week => week.weekNumber === weekNumber);
     if (!targetWeek) {
-      const e = new WorktimeError(
-        `Week ${weekNumber} not found in the month`,
-        ErrorCodes.UNEXPECTED_ERROR
-      );
-      console.error(e.formatForLog());
-      throw e;
+      throw new Error(`Week ${weekNumber} not found in the month`);
     }
 
     return {
