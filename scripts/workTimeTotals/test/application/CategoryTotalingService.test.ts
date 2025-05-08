@@ -17,7 +17,8 @@ describe('CategoryTotalingService', () => {
           endTime: '12:00', // 3時間
           mainCategory: 'WEB開発',
           subCategory: 'コーディング',
-          description: 'タスク1'
+          meeting: '',
+          workContent: 'タスク1'
         }),
         new WorkEntry({
           date: new Date('2024/03/01'),
@@ -25,7 +26,8 @@ describe('CategoryTotalingService', () => {
           endTime: '17:00', // 4時間
           mainCategory: '運用',
           subCategory: '定例作業',
-          description: 'タスク2'
+          meeting: '',
+          workContent: 'タスク2'
         })
       ]);
 
@@ -37,7 +39,8 @@ describe('CategoryTotalingService', () => {
           endTime: '18:00', // 9時間
           mainCategory: 'WEB開発',
           subCategory: 'テスト',
-          description: 'タスク3'
+          meeting: '',
+          workContent: 'タスク3'
         })
       ]);
 
@@ -75,7 +78,8 @@ describe('CategoryTotalingService', () => {
           endTime: '12:00', // 3時間
           mainCategory: 'WEB開発',
           subCategory: 'コーディング',
-          description: 'タスク1'
+          meeting: '',
+          workContent: 'タスク1'
         }),
         new WorkEntry({
           date: new Date('2024/03/01'),
@@ -83,7 +87,8 @@ describe('CategoryTotalingService', () => {
           endTime: '13:00', // 1時間（休憩）
           mainCategory: '休憩',
           subCategory: '休憩',
-          description: 'お昼休憩'
+          meeting: '',
+          workContent: 'お昼休憩'
         })
       ]);
 

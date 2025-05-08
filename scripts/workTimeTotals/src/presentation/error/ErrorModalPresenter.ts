@@ -48,4 +48,33 @@ export class ErrorModalPresenter {
       ui.alert('エラー', message, ui.ButtonSet.OK);
     }
   }
+
+  /**
+   * 警告メッセージをモーダルダイアログで表示
+   * @param title モーダルのタイトル
+   * @param message 表示するメッセージ
+   * @param spreadsheetId 関連するスプレッドシートのID（オプション）
+   */
+  static showWarning(title: string, message: string, spreadsheetId?: string): void {
+    const ui = SpreadsheetApp.getUi();
+    
+    if (spreadsheetId) {
+      const spreadsheetUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit`;
+      const htmlOutput = HtmlService
+        .createHtmlOutput(
+          `<p style="font-family: Arial, sans-serif;">
+            ${message.replace(/\n/g, '<br>')}
+            <br><br>
+            <a href="${spreadsheetUrl}" target="_blank">ダッシュボードを開く</a>
+           </p>`
+        )
+        .setSandboxMode(HtmlService.SandboxMode.IFRAME)
+        .setWidth(400)
+        .setHeight(200);
+
+      ui.showModalDialog(htmlOutput, title);
+    } else {
+      ui.alert(title, message, ui.ButtonSet.OK);
+    }
+  }
 } 

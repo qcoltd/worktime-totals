@@ -6,6 +6,8 @@ import { OvertimeSummary } from '../../../application/OvertimeCalculationService
 import { SubCategoryVisualizationService } from './SubCategoryVisualizationService';
 
 export class WorktimeVisualizationService {
+  private overtimeVisualized: boolean = false;
+
   constructor(
     private spreadsheetId: string,
     private overtimeVisualizationService: OvertimeVisualizationService,
@@ -29,6 +31,9 @@ export class WorktimeVisualizationService {
         overtimeSheet,
         lastRowOvertime + 2
       );
+      
+      // 残業時間が可視化されたことを記録
+      this.overtimeVisualized = true;
     } catch (error) {
       const details = error instanceof WorktimeError ? {
         ...error.details,
@@ -48,7 +53,10 @@ export class WorktimeVisualizationService {
   // サブカテゴリ別の出力
   visualizeProjectBreakdown(entries: Map<string, WorkEntry[]>): void {
     try {
-      const subCategorySheet = this.createSheet('案件別', 4);
+      // 残業時間が可視化されていない場合はインデックスを3に、そうでなければ4に設定
+      const insertPosition = this.overtimeVisualized ? 4 : 3;
+      
+      const subCategorySheet = this.createSheet('案件別', insertPosition);
       this.subCategoryVisualizationService.visualize(
         entries,
         subCategorySheet
