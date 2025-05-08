@@ -1,13 +1,18 @@
 const fs = require("fs");
 
+const env = process.argv[2];
+if (env !== undefined) {
+  console.log(`env "${env}" is set. using .env.${env}`);
+}
+
 // scripts内のディレクトリ名をリストで取得
 const root = './scripts';
 const scriptsDirNames = fs.readdirSync(root)
 
 // 各scriptsのディレクトリ内の.envを参照して.clasp.jsonを作成する
-scriptsDirNames.forEach((dirName) => {  
-  const envFile = `${root}/${dirName}/.env`
-  
+scriptsDirNames.forEach((dirName) => {
+  const envFile = env !== undefined ? `${root}/${dirName}/.env.${env}` : `${root}/${dirName}/.env`
+
   if (!fs.existsSync(envFile)) {
     console.error(`\nenv file is not found. aborting`);
     process.exit(1);

@@ -1,5 +1,5 @@
 import { resolve } from 'path';
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import { readdirSync } from 'fs';
 
 // appsディレクトリ内のサブディレクトリごとにmain.tsをエントリーファイルとして設定
@@ -11,10 +11,13 @@ const entryPoints = readdirSync(root).reduce((entries, dir) => {
   return entries;
 }, {});
 
-export default defineConfig({
-  build: {
-    minify: false, // trueにすると関数名が消えるのでfalse必須
-    lib: {
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+  return {
+    build: {
+      env,
+      minify: false, // trueにすると関数名が消えるのでfalse必須
+      lib: {
       entry: entryPoints,
       name: 'main',
       formats: ['cjs'],
@@ -33,5 +36,6 @@ export default defineConfig({
       find: "@",
       replacement: ""
     }]
-  },
+    },
+  };
 });

@@ -6,7 +6,8 @@
   "scripts": {
     "clasp": "clasp",
     "login": "clasp login",
-    "build": "tsc --noEmit & vite build",
+    "build": "tsc --noEmit && vite build",
+    "build:env": "run(){ tsc --noEmit && vite build --mode $1; }; run",
     "setup": "node tools/createClaspJson.js",
     "setup:env": "node tools/createClaspJson.js $1",
     "dev": "ts-node -T -r tsconfig-paths/register src/dev.ts",
@@ -19,7 +20,7 @@
     "deploy:all": "npm run setup && npm run build && npm run push",
     "deploy:workTimeTotals": "npm run setup && npm run build && npm run push:workTimeTotals",
     "deploy:prod": "npm run deploy:env prod",
-    "deploy:env": "run(){ npm run setup:env $1 && npm run build && npm run push; }; run"
+    "deploy:env": "run(){ npm run setup:env $1 && npm run build:env $1 && npm run push; }; run"
   },
   "author": "",
   "license": "ISC",
