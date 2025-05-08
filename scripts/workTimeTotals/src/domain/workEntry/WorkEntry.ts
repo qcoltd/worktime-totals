@@ -36,7 +36,7 @@ export class WorkEntry {
     try {
       // 必須項目のチェック
       if (!props.subCategory) {
-        throw new WorktimeError(
+        const e = new WorktimeError(
           'SubCategory is required',
           ErrorCodes.REQUIRED_FIELD_MISSING,
           {
@@ -44,11 +44,13 @@ export class WorkEntry {
             errorLocation: `行のデータ: ${props.date}, ${props.startTime}-${props.endTime}, ${props.mainCategory}`
           }
         );
+        console.error(e.formatForLog());
+        throw e;
       }
 
       // 開始時刻は必須
       if (!props.startTime) {
-        throw new WorktimeError(
+        const e = new WorktimeError(
           'Start time is required',
           ErrorCodes.REQUIRED_FIELD_MISSING,
           {
@@ -61,12 +63,14 @@ export class WorkEntry {
             }
           }
         );
+        console.error(e.formatForLog());
+        throw e;
       }
 
       // 時刻形式のバリデーション
       const timeFormat = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/;
       if (!timeFormat.test(props.startTime)) {
-        throw new WorktimeError(
+        const e = new WorktimeError(
           'Invalid start time format',
           ErrorCodes.INVALID_TIME_FORMAT,
           {
@@ -79,9 +83,11 @@ export class WorkEntry {
             }
           }
         );
+        console.error(e.formatForLog());
+        throw e;
       }
       if (props.endTime && !timeFormat.test(props.endTime)) {
-        throw new WorktimeError(
+        const e = new WorktimeError(
           'Invalid end time format',
           ErrorCodes.INVALID_TIME_FORMAT,
           {
@@ -94,11 +100,13 @@ export class WorkEntry {
             }
           }
         );
+        console.error(e.formatForLog());
+        throw e;
       }
 
       // 開始時刻と終了時刻の組み合わせチェック
       if (!props.startTime && props.endTime) {
-        throw new WorktimeError(
+        const e = new WorktimeError(
           'Start time is required when end time is set',
           ErrorCodes.INVALID_TIME_FORMAT,
           {
@@ -111,11 +119,13 @@ export class WorkEntry {
             }
           }
         );
+        console.error(e.formatForLog());
+        throw e;
       }
 
       // 日付のバリデーション
       if (!(props.date instanceof Date) || isNaN(props.date.getTime())) {
-        throw new WorktimeError(
+        const e = new WorktimeError(
           'Invalid date format',
           ErrorCodes.INVALID_DATE_FORMAT,
           {
@@ -128,12 +138,14 @@ export class WorkEntry {
             }
           }
         );
+        console.error(e.formatForLog());
+        throw e;
       }
 
       // 日付の妥当性チェック
       const date = dayjsLib.parse(props.date);
       if (!date.isValid() || date.format('YYYY-MM-DD') !== date.format('YYYY-MM-DD')) {
-        throw new WorktimeError(
+        const e = new WorktimeError(
           'Invalid date value',
           ErrorCodes.INVALID_DATE_FORMAT,
           {
@@ -146,12 +158,15 @@ export class WorkEntry {
             }
           }
         );
+        console.error(e.formatForLog());
+        throw e;
       }
     } catch (error) {
       if (error instanceof WorktimeError) {
+        console.error(error.formatForLog());
         throw error;
       }
-      throw new WorktimeError(
+      const e = new WorktimeError(
         'Invalid work entry',
         ErrorCodes.INVALID_SHEET_FORMAT,
         {
@@ -164,6 +179,8 @@ export class WorkEntry {
           }
         }
       );
+      console.error(e.formatForLog());
+      throw e;
     }
   }
 
@@ -193,7 +210,7 @@ export class WorkEntry {
   get workContent(): string {
     return this._workContent;
   }
-  
+
   // 後方互換性のために残す
   get description(): string {
     return this._workContent;

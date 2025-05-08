@@ -1,6 +1,7 @@
 import { OvertimeCalculator } from '../domain/overtime/OvertimeCalculator';
 import { WorkEntry } from '../domain/workEntry/WorkEntry';
 import { dayjsLib } from '../libs/dayjs';
+import { WorktimeError, ErrorCodes } from '../domain/error/WorktimeError';
 
 interface WeeklyOvertime {
   weekNumber: number;
@@ -127,7 +128,7 @@ export class OvertimeCalculationService {
       });
 
       const hours = OvertimeCalculator.calculateTotal(weekEntries);
-      
+
       weeklyOvertime.push({
         weekNumber,
         startDate: dayjsLib.formatDate(start),
@@ -192,4 +193,4 @@ export class OvertimeCalculationService {
       endDate: targetWeek.end
     };
   }
-} 
+}

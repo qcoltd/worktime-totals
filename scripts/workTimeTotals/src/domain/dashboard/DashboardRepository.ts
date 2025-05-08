@@ -21,11 +21,11 @@ export class DashboardRepository {
 
       // プロジェクトリストの取得
       const projectsValue = sheet.getRange(TOTALING_SHEET.COLUMNS.DASHBOARD.PROJECTS).getValue();
-      
+
       // 出力選択チェックボックスの取得
       const outputOvertimeAndCategoryValue = sheet.getRange(TOTALING_SHEET.COLUMNS.DASHBOARD.OUTPUT_OVERTIME_AND_CATEGORY).getValue();
       const outputProjectBreakdownValue = sheet.getRange(TOTALING_SHEET.COLUMNS.DASHBOARD.OUTPUT_PROJECT_BREAKDOWN).getValue();
-      
+
       // 日付の変換
       const startDate = dayjsLib.parse(startDateValue).toDate();
       const endDate = dayjsLib.parse(endDateValue).toDate();
@@ -49,11 +49,13 @@ export class DashboardRepository {
         outputProjectBreakdown
       };
     } catch (error) {
-      throw new WorktimeError(
+      const e = new WorktimeError(
         'Failed to get dashboard settings',
         ErrorCodes.DASHBOARD_ERROR,
         { message: error instanceof Error ? error.message : '不明なエラー' }
       );
+      console.error(e.formatForLog());
+      throw e;
     }
   }
 
@@ -62,13 +64,15 @@ export class DashboardRepository {
     const sheet = spreadsheet.getSheetByName(TOTALING_SHEET.SHEET_NAME.DASHBOARD);
 
     if (!sheet) {
-      throw new WorktimeError(
+      const e = new WorktimeError(
         'Dashboard sheet not found',
         ErrorCodes.SHEET_NOT_FOUND,
         { sheetName: TOTALING_SHEET.SHEET_NAME.DASHBOARD }
       );
+      console.error(e.formatForLog());
+      throw e;
     }
 
     return sheet;
   }
-} 
+}

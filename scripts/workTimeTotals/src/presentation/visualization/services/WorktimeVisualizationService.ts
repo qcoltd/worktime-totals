@@ -31,7 +31,7 @@ export class WorktimeVisualizationService {
         overtimeSheet,
         lastRowOvertime + 2
       );
-      
+
       // 残業時間が可視化されたことを記録
       this.overtimeVisualized = true;
     } catch (error) {
@@ -42,11 +42,13 @@ export class WorktimeVisualizationService {
         message: '残業時間と業務比率の出力中にエラーが発生しました'
       } : undefined;
 
-      throw new WorktimeError(
+      const e = new WorktimeError(
         'Failed to visualize overtime and category data',
         ErrorCodes.SHEET_ACCESS_ERROR,
         details
       );
+      console.error(e.formatForLog());
+      throw e;
     }
   }
 
@@ -55,7 +57,7 @@ export class WorktimeVisualizationService {
     try {
       // 残業時間が可視化されていない場合はインデックスを3に、そうでなければ4に設定
       const insertPosition = this.overtimeVisualized ? 4 : 3;
-      
+
       const subCategorySheet = this.createSheet('案件別', insertPosition);
       this.subCategoryVisualizationService.visualize(
         entries,
@@ -69,11 +71,13 @@ export class WorktimeVisualizationService {
         message: '案件別作業時間の出力中にエラーが発生しました'
       } : undefined;
 
-      throw new WorktimeError(
+      const e = new WorktimeError(
         'Failed to visualize project breakdown data',
         ErrorCodes.SHEET_ACCESS_ERROR,
         details
       );
+      console.error(e.formatForLog());
+      throw e;
     }
   }
 
@@ -83,4 +87,4 @@ export class WorktimeVisualizationService {
     const timestamp = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyyMMddHHmm');
     return spreadsheet.insertSheet(`${prefix}_${timestamp}`, insertPosition);
   }
-} 
+}

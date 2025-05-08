@@ -40,10 +40,10 @@ export class CategoryRepository implements CategoryRepositoryInterface {
       const allCategories = CATEGORY_MASTER.SHEET_NAMES.flatMap(sheetName => {
         // シートを切り替え
         adapter.setSheetName(sheetName);
-        
+
         // A列のデータを取得
         const values = adapter.getColumnValues('A');
-        
+
         // 空の値を除外して返す
         return values
           .map(value => value?.toString().trim())
@@ -55,13 +55,16 @@ export class CategoryRepository implements CategoryRepositoryInterface {
 
     } catch (error) {
       if (error instanceof WorktimeError) {
+        console.error(error.formatForLog());
         throw error;
       }
-      throw new WorktimeError(
+      const e = new WorktimeError(
         'Failed to fetch categories',
         ErrorCodes.SHEET_ACCESS_ERROR,
         error
       );
+      console.error(e.formatForLog());
+      throw e;
     }
   }
-} 
+}

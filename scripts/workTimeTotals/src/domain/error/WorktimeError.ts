@@ -27,6 +27,27 @@ export class WorktimeError extends Error {
     }
     return undefined;
   }
+
+  formatForLog(): string {
+    let logMessage = `[${this.code}] ${this.message}`;
+
+    if (this.details) {
+      if (this.details.spreadsheetName) {
+        logMessage += `\nSpreadsheet: ${this.details.spreadsheetName}`;
+      }
+      if (this.details.sheetName) {
+        logMessage += `\nSheet: ${this.details.sheetName}`;
+      }
+      if (this.details.errorLocation) {
+        logMessage += `\nLocation: ${this.details.errorLocation}`;
+      }
+      if (this.details.message) {
+        logMessage += `\nDetails: ${this.details.message}`;
+      }
+    }
+
+    return logMessage;
+  }
 }
 
 export const ErrorCodes = {
@@ -45,4 +66,4 @@ export const ErrorCodes = {
   DASHBOARD_ERROR: 'DASHBOARD_ERROR',
 } as const;
 
-export type ErrorCode = typeof ErrorCodes[keyof typeof ErrorCodes]; 
+export type ErrorCode = typeof ErrorCodes[keyof typeof ErrorCodes];

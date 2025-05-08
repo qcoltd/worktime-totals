@@ -44,17 +44,20 @@ export class EmployeeSheetRepository implements EmployeeSheetRepositoryInterface
 
     } catch (error) {
       if (error instanceof WorktimeError) {
+        console.error(error.formatForLog());
         throw error;
       }
-      throw new WorktimeError(
+      const e = new WorktimeError(
         'Failed to fetch employee sheets',
         ErrorCodes.SHEET_ACCESS_ERROR,
         error
       );
+      console.error(e.formatForLog());
+      throw e;
     }
   }
 
   findByName(name: string): EmployeeSheet | undefined {
     return this.findAll().find(sheet => sheet.name === name);
   }
-} 
+}
