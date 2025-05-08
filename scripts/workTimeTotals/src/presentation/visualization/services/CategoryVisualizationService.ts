@@ -30,9 +30,15 @@ export class CategoryVisualizationService {
       // 従業員別の業務比率の可視化（テーブル）を1行空けて作成
       this.visualizeEmployeeRatio(sheet, ratioData, totalRatioLastRow + 1);
     } catch (error) {
-      throw new WorktimeError('Failed to visualize category data', ErrorCodes.SHEET_ACCESS_ERROR, {
-        message: error instanceof Error ? error.message : '不明なエラー'
-      });
+      const e = new WorktimeError(
+        'Failed to visualize category data',
+        ErrorCodes.SHEET_ACCESS_ERROR,
+        {
+          message: error instanceof Error ? error.message : '不明なエラー'
+        }
+      );
+      console.error(e.formatForLog());
+      throw e;
     }
   }
 
@@ -135,9 +141,15 @@ export class CategoryVisualizationService {
       } catch (error) {
         console.error('エラー発生月:', monthly.month);
         console.error('エラー詳細:', error);
-        throw new WorktimeError('Failed to visualize employee ratio', ErrorCodes.SHEET_ACCESS_ERROR, {
-          message: `${monthly.month}の処理中にエラーが発生: ${error instanceof Error ? error.message : '不明なエラー'}`
-        });
+        const e = new WorktimeError(
+          'Failed to visualize employee ratio',
+          ErrorCodes.SHEET_ACCESS_ERROR,
+          {
+            message: `${monthly.month}の処理中にエラーが発生: ${error instanceof Error ? error.message : '不明なエラー'}`
+          }
+        );
+        console.error(e.formatForLog());
+        throw e;
       }
     });
   }

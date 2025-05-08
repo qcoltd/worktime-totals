@@ -55,13 +55,15 @@ export class SubCategoryVisualizationService {
 
       return lastRow + chart.chartHeight;
     } catch (error) {
-      throw new WorktimeError(
+      const e = new WorktimeError(
         'Failed to visualize subcategory data',
         ErrorCodes.SHEET_ACCESS_ERROR,
         {
           message: error instanceof Error ? error.message : '不明なエラー'
         }
       );
+      console.error(e.formatForLog());
+      throw e;
     }
   }
 

@@ -1,6 +1,7 @@
 import { OvertimeCalculator } from '../domain/overtime/OvertimeCalculator';
 import { WorkEntry } from '../domain/workEntry/WorkEntry';
 import { dayjsLib } from '../libs/dayjs';
+import { WorktimeError, ErrorCodes } from '../domain/error/WorktimeError';
 
 interface WeeklyOvertime {
   weekNumber: number;
@@ -127,7 +128,7 @@ export class OvertimeCalculationService {
       });
 
       const hours = OvertimeCalculator.calculateTotal(weekEntries);
-      
+
       weeklyOvertime.push({
         weekNumber,
         startDate: dayjsLib.formatDate(start),
@@ -184,7 +185,12 @@ export class OvertimeCalculationService {
 
     const targetWeek = weeks.find(week => week.weekNumber === weekNumber);
     if (!targetWeek) {
-      throw new Error(`Week ${weekNumber} not found in the month`);
+      const e = new WorktimeError(
+        `Week ${weekNumber} not found in the month`,
+        ErrorCodes.UNEXPECTED_ERROR
+      );
+      console.error(e.formatForLog());
+      throw e;
     }
 
     return {
@@ -192,4 +198,4 @@ export class OvertimeCalculationService {
       endDate: targetWeek.end
     };
   }
-} 
+}

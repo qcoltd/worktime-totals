@@ -14,6 +14,7 @@ import { dayjsLib } from './libs/dayjs';
 import { SubCategoryVisualizationService } from './presentation/visualization/services/SubCategoryVisualizationService';
 import { ErrorModalPresenter } from './presentation/error/ErrorModalPresenter';
 import { WorktimeError } from './domain/error/WorktimeError';
+import { ErrorCodes } from './domain/error/ErrorCodes';
 
 function main() {
   try {
@@ -24,15 +25,21 @@ function main() {
     // 集計対象の期間を設定
     const startDate = settings.startDate;
     const endDate = settings.endDate;
-    
+
     // 出力設定を取得
     const outputOvertimeAndCategory = settings.outputOvertimeAndCategory;
     const outputProjectBreakdown = settings.outputProjectBreakdown;
-    
+
     // どちらの出力も選択されていない場合は処理を終了
     if (!outputOvertimeAndCategory && !outputProjectBreakdown) {
       console.log('出力が選択されていません。ダッシュボードで出力項目を選択してください。');
       // 警告モーダルを表示
+      const e = new WorktimeError(
+        '出力項目が未選択です',
+        ErrorCodes.DASHBOARD_ERROR,
+        { message: 'ダッシュボードで出力項目を選択してください。' }
+      );
+      console.error(e.formatForLog());
       ErrorModalPresenter.showWarning(
         '出力項目が未選択です',
         'ダッシュボードで出力項目を選択してください。'
@@ -63,7 +70,7 @@ function main() {
     workEntries.forEach((entries, name) => {
       console.log(`\n■ ${name}`);
       console.log(`総作業時間: ${entries.totalDuration()}時間`);
-      
+
       // カテゴリごとの集計
       console.log('カテゴリ別作業時間:');
       const categoryTotals = entries.totalDurationByCategory();
@@ -74,7 +81,7 @@ function main() {
 
     // 残業時間の集計（両方の出力に必要なので常に実行）
     console.log('\n=== 残業時間集計 ===');
-    
+
     // WorkEntryCollectionからWorkEntry[]に変換
     const entriesForOvertime = new Map<string, WorkEntry[]>();
     workEntries.forEach((collection, name) => {
@@ -130,10 +137,10 @@ function main() {
         entriesForOvertime,
         categoryStartMonth
       );
-      
+
       console.log(`\n■ ${dayjsLib.formatDate(categoryStartMonth, 'YYYY/MM')}`);
       console.log(`期間: ${categorySummary.period.startDate} 〜 ${categorySummary.period.endDate}`);
-      
+
       console.log('\n全体集計:');
       categorySummary.totalsByCategory.forEach(total => {
         console.log(`  ${total.category}: ${total.hours}時間`);
@@ -155,17 +162,17 @@ function main() {
     console.log('\n=== サブカテゴリ別作業時間集計 ===');
     const subCategoryService = new SubCategoryTotalingService();
     const targetMainCategories = settings.targetProjects; // ダッシュボードから取得した案件を使用
-    
+
     const subCategorySummary = subCategoryService.calculateSummary(
       entriesForOvertime,
       targetMainCategories,
       startDate,
       endDate
     );
-    
+
     console.log(`\n■ 対象メインカテゴリ: ${subCategorySummary.mainCategories.join(', ')}`);
     console.log(`期間: ${subCategorySummary.period.startDate} 〜 ${subCategorySummary.period.endDate}`);
-    
+
     console.log('\n全体集計:');
     subCategorySummary.totalsBySubCategory.forEach(total => {
       console.log(`  ${total.subCategory}: ${total.hours}時間`);
@@ -204,7 +211,7 @@ function main() {
     // 案件別作業時間の内訳を出力（フラグがオンの場合のみ）
     if (outputProjectBreakdown) {
       console.log('\n案件別作業時間の内訳の出力を実行します...');
-      
+
       // Filter entries by the target main categories before visualization
       const projectFilteredEntries = new Map<string, WorkEntry[]>();
 
@@ -225,6 +232,7 @@ function main() {
   } catch (error) {
     if (error instanceof WorktimeError) {
       // モーダルでエラーを表示して終了
+      console.error(error.formatForLog());
       ErrorModalPresenter.showError(error);
       return;  // 処理を終了
     } else {

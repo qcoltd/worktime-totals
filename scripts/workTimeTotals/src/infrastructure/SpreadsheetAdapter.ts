@@ -30,16 +30,18 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
     try {
       const sheet = SpreadsheetApp.openById(this.spreadsheetId).getSheetByName(this.sheetName);
       if (!sheet) {
-        throw new WorktimeError(
+        const e = new WorktimeError(
           `Sheet not found: ${this.sheetName}`,
           ErrorCodes.SHEET_NOT_FOUND
         );
+        console.error(e.formatForLog());
+        throw e;
       }
 
       // 全てのデータを取得してから必要な列を選別する方法も試す
       // データの詳細をログに出力
       console.log(`シート「${this.sheetName}」のデータ取得を開始`);
-      
+
       // まずは通常の範囲でデータを取得
       const dataRange = sheet.getRange('J3:P');
       console.log(`範囲 J3:P を読み込み`);
@@ -77,7 +79,7 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
           console.error(`行 ${index + 3} の処理中にエラー:`, error);
           // ここでの例外は上に投げずにログに残し、処理を続行することもできる
           // この例ではエラーを上に投げる従来の挙動を維持
-          throw new WorktimeError(
+          const e = new WorktimeError(
             `Failed to parse row ${index + 3}`,
             ErrorCodes.INVALID_SHEET_FORMAT,
             {
@@ -90,29 +92,36 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
               }
             }
           );
+          console.error(e.formatForLog());
+          throw e;
         }
       });
 
       return collection;
     } catch (error) {
       if (error instanceof WorktimeError) {
+        console.error(error.formatForLog());
         throw error;
       }
-      throw new WorktimeError(
+      const e = new WorktimeError(
         'Failed to read work entries',
         ErrorCodes.SHEET_ACCESS_ERROR,
         error
       );
+      console.error(e.formatForLog());
+      throw e;
     }
   }
 
   writeWorkEntries(entries: WorkEntryCollection): void {
     const sheet = SpreadsheetApp.openById(this.spreadsheetId).getSheetByName(this.sheetName);
     if (!sheet) {
-      throw new WorktimeError(
+      const e = new WorktimeError(
         `Sheet not found: ${this.sheetName}`,
         ErrorCodes.SHEET_NOT_FOUND
       );
+      console.error(e.formatForLog());
+      throw e;
     }
 
     const headers = [
@@ -147,7 +156,7 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
         }
         return value;
       }));
-      
+
       const dateValue = row[0];
       let parsedDate: Date;
       if (typeof dateValue === 'string') {
@@ -207,15 +216,18 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
       });
     } catch (error) {
       if (error instanceof WorktimeError) {
+        console.error(error.formatForLog());
         throw error;
       }
-      throw new WorktimeError(
+      const e = new WorktimeError(
         'Failed to parse row data',
         ErrorCodes.INVALID_SHEET_FORMAT,
         {
           message: error instanceof Error ? error.message : '不明なエラー'
         }
       );
+      console.error(e.formatForLog());
+      throw e;
     }
   }
 
@@ -233,36 +245,45 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
     try {
       const spreadsheet = SpreadsheetApp.openById(this.spreadsheetId);
       if (!spreadsheet) {
-        throw new WorktimeError(
+        const e = new WorktimeError(
           `Spreadsheet not found: ${this.spreadsheetId}`,
           ErrorCodes.SHEET_NOT_FOUND
         );
+        console.error(e.formatForLog());
+        throw e;
       }
 
       if (this.sheetName) {
         const sheet = spreadsheet.getSheetByName(this.sheetName);
         if (!sheet) {
-          throw new WorktimeError(
+          const e = new WorktimeError(
             `Sheet not found: ${this.sheetName}`,
             ErrorCodes.SHEET_NOT_FOUND
           );
+          console.error(e.formatForLog());
+          throw e;
         }
         return sheet;
       }
 
-      throw new WorktimeError(
+      const e = new WorktimeError(
         'Sheet name is required for this operation',
         ErrorCodes.SHEET_NOT_FOUND
       );
+      console.error(e.formatForLog());
+      throw e;
     } catch (error) {
       if (error instanceof WorktimeError) {
+        console.error(error.formatForLog());
         throw error;
       }
-      throw new WorktimeError(
+      const e = new WorktimeError(
         'Failed to access spreadsheet',
         ErrorCodes.SHEET_ACCESS_ERROR,
         error
       );
+      console.error(e.formatForLog());
+      throw e;
     }
   }
 
@@ -270,21 +291,26 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
     try {
       const spreadsheet = SpreadsheetApp.openById(this.spreadsheetId);
       if (!spreadsheet) {
-        throw new WorktimeError(
+        const e = new WorktimeError(
           'Failed to get spreadsheet',
           ErrorCodes.SHEET_ACCESS_ERROR
         );
+        console.error(e.formatForLog());
+        throw e;
       }
       return spreadsheet.getSheets().map(sheet => sheet.getName());
     } catch (error) {
       if (error instanceof WorktimeError) {
+        console.error(error.formatForLog());
         throw error;
       }
-      throw new WorktimeError(
+      const e = new WorktimeError(
         'Failed to get sheet names',
         ErrorCodes.SHEET_ACCESS_ERROR,
         error
       );
+      console.error(e.formatForLog());
+      throw e;
     }
   }
 
@@ -293,4 +319,4 @@ export class SpreadsheetAdapter implements SpreadsheetAdapterInterface {
     const dataRange = range ? sheet.getRange(range) : sheet.getDataRange();
     return dataRange.getValues();
   }
-} 
+}

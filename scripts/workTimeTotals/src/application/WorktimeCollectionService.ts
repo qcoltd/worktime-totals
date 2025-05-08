@@ -68,7 +68,7 @@ export class WorktimeCollectionService {
             });
           } catch (error) {
             console.error(`Failed to read sheet ${sheetName} for ${sheet.name}:`, error);
-            throw new WorktimeError(
+            const e = new WorktimeError(
               `Failed to read sheet ${sheetName} for ${sheet.name}`,
               ErrorCodes.SHEET_ACCESS_ERROR,
               {
@@ -79,6 +79,8 @@ export class WorktimeCollectionService {
                 message: error instanceof Error ? error.message : '不明なエラー'
               }
             );
+            console.error(e.formatForLog());
+            throw e;
           }
         });
 
@@ -90,7 +92,7 @@ export class WorktimeCollectionService {
     } catch (error) {
       if (error instanceof WorktimeError) {
         const errorDetails = error.details;
-        throw new WorktimeError(
+        const e = new WorktimeError(
           error.message,
           ErrorCodes.SHEET_ACCESS_ERROR,
           {
@@ -101,7 +103,10 @@ export class WorktimeCollectionService {
             message: errorDetails?.message
           }
         );
+        console.error(e.formatForLog());
+        throw e;
       }
+      console.error(error);
       throw error;
     }
   }

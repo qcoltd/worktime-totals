@@ -18,14 +18,14 @@ class DayjsLib {
     if (typeof date === 'string') {
       // YYYY/MM/DD形式の文字列を厳密にパース
       const [year, month, day] = date.split('/').map(Number);
-      
+
       // 各部分の妥当性チェック
       if (
         isNaN(year) || isNaN(month) || isNaN(day) ||
         month < 1 || month > 12 ||
         day < 1 || day > new Date(year, month, 0).getDate()
       ) {
-        throw new WorktimeError(
+        const e = new WorktimeError(
           'Invalid date format or value',
           ErrorCodes.INVALID_DATE_FORMAT,
           {
@@ -33,6 +33,8 @@ class DayjsLib {
             errorLocation: `Date: ${date}`
           }
         );
+        console.error(e.formatForLog());
+        throw e;
       }
 
       return dayjs(new Date(year, month - 1, day));
@@ -40,7 +42,7 @@ class DayjsLib {
 
     // Date型の場合の妥当性チェック
     if (!(date instanceof Date) || isNaN(date.getTime())) {
-      throw new WorktimeError(
+      const e = new WorktimeError(
         'Invalid date value',
         ErrorCodes.INVALID_DATE_FORMAT,
         {
@@ -48,6 +50,8 @@ class DayjsLib {
           errorLocation: `Date: ${date}`
         }
       );
+      console.error(e.formatForLog());
+      throw e;
     }
 
     return dayjs(date);
@@ -68,4 +72,4 @@ class DayjsLib {
   }
 }
 
-export const dayjsLib = new DayjsLib(); 
+export const dayjsLib = new DayjsLib();

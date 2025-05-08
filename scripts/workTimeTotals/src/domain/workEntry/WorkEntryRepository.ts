@@ -4,6 +4,7 @@ import { TOTALING_SHEET } from '../../define';
 import { WorktimeError, ErrorCodes } from '../error/WorktimeError';
 import { WorkEntry } from './WorkEntry';
 import { dayjsLib } from '../../libs/dayjs';
+import { logAndThrow } from '../../utils/errorUtils';
 
 export interface WorkEntryRepositoryInterface {
   save(entries: WorkEntryCollection): void;
@@ -33,11 +34,13 @@ export class WorkEntryRepository implements WorkEntryRepositoryInterface {
       if (error instanceof WorktimeError) {
         throw error;
       }
-      throw new WorktimeError(
+      const e = new WorktimeError(
         'Failed to save work entries',
         ErrorCodes.SHEET_ACCESS_ERROR,
         error
       );
+      console.error(e.formatForLog());
+      throw e;
     }
   }
 
@@ -55,7 +58,7 @@ export class WorkEntryRepository implements WorkEntryRepositoryInterface {
 
           // 日付の処理
           const date = this.parseDate(row[0]);
-          
+
           // 日付が無効な場合はスキップ
           if (!date) {
             return;
@@ -65,7 +68,7 @@ export class WorkEntryRepository implements WorkEntryRepositoryInterface {
           const dateStr = dayjsLib.formatDate(date);
           const startDateStr = dayjsLib.formatDate(startDate);
           const endDateStr = dayjsLib.formatDate(endDate);
-          
+
           if (dateStr < startDateStr || dateStr > endDateStr) {
             return;
           }
@@ -76,12 +79,12 @@ export class WorkEntryRepository implements WorkEntryRepositoryInterface {
           // 時刻の処理
           const startTimeValue = row[1];
           const endTimeValue = row[2];
-          const startTime = startTimeValue instanceof Date 
-            ? this.formatTime(startTimeValue) 
+          const startTime = startTimeValue instanceof Date
+            ? this.formatTime(startTimeValue)
             : startTimeValue?.toString().trim() || '';
-          
-          const endTime = endTimeValue instanceof Date 
-            ? this.formatTime(endTimeValue) 
+
+          const endTime = endTimeValue instanceof Date
+            ? this.formatTime(endTimeValue)
             : endTimeValue?.toString().trim() || '';
 
           // エントリーを作成
@@ -100,7 +103,7 @@ export class WorkEntryRepository implements WorkEntryRepositoryInterface {
           if (error instanceof WorktimeError) {
             throw error;
           }
-          throw new WorktimeError(
+          const e = new WorktimeError(
             `行${index + 3}のデータ読み込みに失敗`,
             ErrorCodes.INVALID_SHEET_FORMAT,
             {
@@ -113,23 +116,28 @@ export class WorkEntryRepository implements WorkEntryRepositoryInterface {
               }
             }
           );
+          console.error(e.formatForLog());
+          throw e;
         }
       });
 
       return entries;
     } catch (error) {
       if (error instanceof WorktimeError) {
+        console.error(error.formatForLog());
         throw error;
       }
-      throw new WorktimeError(
+      const e = new WorktimeError(
         'Failed to read work entries',
         ErrorCodes.SHEET_ACCESS_ERROR,
-        { 
+        {
           message: error instanceof Error ? error.message : '不明なエラー',
           sheetName: this.adapter.sheetName,
           spreadsheetId: this.adapter.spreadsheetId
         }
       );
+      console.error(e.formatForLog());
+      throw e;
     }
   }
 
@@ -152,10 +160,10 @@ export class WorkEntryRepository implements WorkEntryRepositoryInterface {
 
   // 完全な空行かどうかをチェック
   private isEmptyRow(row: any[]): boolean {
-    return row.every(cell => 
-      cell === undefined || 
-      cell === null || 
-      cell === '' || 
+    return row.every(cell =>
+      cell === undefined ||
+      cell === null ||
+      cell === '' ||
       (typeof cell === 'string' && cell.trim() === '')
     );
   }
@@ -184,7 +192,7 @@ export class WorkEntryRepository implements WorkEntryRepositoryInterface {
   private validateRequiredFields(row: any[], index: number): void {
     // 開始時刻のチェック
     if (!row[1]) {
-      throw new WorktimeError(
+      const e = new WorktimeError(
         '開始時刻が未入力です',
         ErrorCodes.INVALID_SHEET_FORMAT,
         {
@@ -197,11 +205,13 @@ export class WorkEntryRepository implements WorkEntryRepositoryInterface {
           }
         }
       );
+      console.error(e.formatForLog());
+      throw e;
     }
 
     // メインカテゴリのチェック
     if (!row[3]?.toString().trim()) {
-      throw new WorktimeError(
+      const e = new WorktimeError(
         'メインカテゴリが未入力です',
         ErrorCodes.INVALID_SHEET_FORMAT,
         {
@@ -214,11 +224,13 @@ export class WorkEntryRepository implements WorkEntryRepositoryInterface {
           }
         }
       );
+      console.error(e.formatForLog());
+      throw e;
     }
 
     // サブカテゴリのチェック
     if (!row[4]?.toString().trim()) {
-      throw new WorktimeError(
+      const e = new WorktimeError(
         'サブカテゴリが未入力です',
         ErrorCodes.INVALID_SHEET_FORMAT,
         {
@@ -231,6 +243,8 @@ export class WorkEntryRepository implements WorkEntryRepositoryInterface {
           }
         }
       );
+      console.error(e.formatForLog());
+      throw e;
     }
   }
-} 
+}

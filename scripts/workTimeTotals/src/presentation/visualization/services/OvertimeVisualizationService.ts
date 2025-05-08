@@ -18,22 +18,24 @@ export class OvertimeVisualizationService {
     try {
       // データをMonthlyData形式に変換してから処理
       const monthlyDataArray = OvertimeDataAdapter.toMonthlyData(monthlyData);
-      
+
       // 月次の可視化（テーブルとグラフ）を作成し、最終行を取得
       const monthlyLastRow = this.visualizeMonthlyOvertime(sheet, monthlyDataArray);
-      
+
       // 週次の可視化（テーブルとグラフ）を2行空けて作成
       const weeklyLastRow = this.visualizeWeeklyOvertime(sheet, monthlyDataArray, monthlyLastRow + 2);
 
       return weeklyLastRow;
     } catch (error) {
-      throw new WorktimeError(
+      const e = new WorktimeError(
         'Failed to visualize overtime data',
         ErrorCodes.SHEET_ACCESS_ERROR,
         {
           message: error instanceof Error ? error.message : '不明なエラー'
         }
       );
+      console.error(e.formatForLog());
+      throw e;
     }
   }
 
@@ -77,4 +79,4 @@ export class OvertimeVisualizationService {
     // グラフの高さを考慮した最終行を返す
     return lastRow + chartComponent.chartHeight;
   }
-} 
+}

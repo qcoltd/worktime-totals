@@ -1,3 +1,5 @@
+import { WorktimeError, ErrorCodes } from '../error/WorktimeError';
+
 export interface EmployeeSheetProps {
   name: string;
   spreadsheetUrl: string;
@@ -15,8 +17,14 @@ export class EmployeeSheet {
   private extractSpreadsheetId(url: string): string {
     const match = url.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
     if (!match) {
-      throw new Error('Invalid spreadsheet URL format');
+      const e = new WorktimeError(
+        'Invalid spreadsheet URL format',
+        ErrorCodes.INVALID_SHEET_FORMAT,
+        { message: `URL: ${url}` }
+      );
+      console.error(e.formatForLog());
+      throw e;
     }
     return match[1];
   }
-} 
+}
