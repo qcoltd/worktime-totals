@@ -19,6 +19,7 @@ export class WorktimeCollectionService {
     return sheetNames.filter(name => {
       // YYYYMMDDの形式でない場合はスキップ
       if (!datePattern.test(name)) {
+        console.info(`${name} is not a valid date format. skipping...`);
         return false;
       }
 
@@ -28,10 +29,14 @@ export class WorktimeCollectionService {
       const day = parseInt(name.substring(6, 8));
       const sheetDate = new Date(year, month, day);
 
+      // 週半ばで月が変わった場合にもれないように１週間分ずつ余分に前後を取得する
+      const expandedStartDate = dayjsLib.addDays(startDate, -7).toDate();
+      const expandedEndDate = dayjsLib.addDays(endDate, 7).toDate();
+
       // 日付文字列に変換して比較
       const sheetDateStr = dayjsLib.formatDate(sheetDate);
-      const startDateStr = dayjsLib.formatDate(startDate);
-      const endDateStr = dayjsLib.formatDate(endDate);
+      const startDateStr = dayjsLib.formatDate(expandedStartDate);
+      const endDateStr = dayjsLib.formatDate(expandedEndDate);
 
       return sheetDateStr >= startDateStr && sheetDateStr <= endDateStr;
     });
@@ -40,14 +45,15 @@ export class WorktimeCollectionService {
   collectWorkEntries(startDate: Date, endDate: Date): Map<string, WorkEntryCollection> {
     try {
       const results = new Map<string, WorkEntryCollection>();
-      
+
       // 全従業員のシート情報を取得
       const employeeSheets = this.employeeSheetRepo.findAll();
 
       // 各従業員の作業時間を取得
       employeeSheets.forEach(sheet => {
-        // 対象期間内の日付シートのみを取得
+        // 対象期間内の日付シート(+前後一週間)のみを取得
         const targetDateSheets = this.getTargetDateSheets(sheet.spreadsheetId, startDate, endDate);
+        console.log('targetDateSheets : ', targetDateSheets);
         const allEntries = new WorkEntryCollection();
 
         // 各シートからデータを取得
@@ -76,6 +82,7 @@ export class WorktimeCollectionService {
           }
         });
 
+        console.log(`sheetName: ${sheet.name}, allEntries.entries.length : ${allEntries.entries.length}`);
         results.set(sheet.name, allEntries);
       });
 
@@ -98,4 +105,4 @@ export class WorktimeCollectionService {
       throw error;
     }
   }
-} 
+}
