@@ -13,8 +13,7 @@ import { WorktimeVisualizationService } from './presentation/visualization/servi
 import { dayjsLib } from './libs/dayjs';
 import { SubCategoryVisualizationService } from './presentation/visualization/services/SubCategoryVisualizationService';
 import { ErrorModalPresenter } from './presentation/error/ErrorModalPresenter';
-import { WorktimeError } from './domain/error/WorktimeError';
-import { ErrorCodes } from './domain/error/ErrorCodes';
+import { WorktimeError, ErrorCodes } from './domain/error/WorktimeError';
 
 function main() {
   try {
