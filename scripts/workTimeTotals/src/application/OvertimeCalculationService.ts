@@ -44,8 +44,9 @@ export class OvertimeCalculationService {
     employeeEntries: Map<string, WorkEntry[]>,
     targetDate: Date
   ): OvertimeSummary {
-    const startDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
-    const endDate = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0);
+    const date = dayjsLib.parse(targetDate);
+    const startDate = date.set('date', 1).toDate();
+    const endDate = date.endOf('month').toDate();
 
     return this.calculateSummary(employeeEntries, startDate, endDate);
   }

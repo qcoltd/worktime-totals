@@ -92,6 +92,8 @@ function main() {
     const overtimeEndMonth = new Date(endDate);
     const overtimeSummaries: OvertimeSummary[] = [];
 
+    // 一日でもまたがっていれば出力したいので月初日で判定する
+    overtimeStartMonth.setDate(1);
     while (overtimeStartMonth <= overtimeEndMonth) {
       const summary = overtimeService.calculateMonthlySummary(
         entriesForOvertime,

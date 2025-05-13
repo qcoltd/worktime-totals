@@ -47,6 +47,8 @@ export class CategoryVisualizationService {
     const startDate = new Date(this.startDate);
     const endDate = new Date(this.endDate);
 
+    // 対象月に一日でも入っていれば出力したいので月初日で判定する
+    startDate.setDate(1);
     while (startDate <= endDate) {
       const summary = this.categoryTotalingService.calculateMonthlySummary(
         entriesForOvertime,

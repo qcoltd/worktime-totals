@@ -11,8 +11,9 @@ export class CategoryTotalingService {
     employeeEntries: Map<string, WorkEntry[]>,
     targetDate: Date
   ): CategorySummary {
-    const startDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
-    const endDate = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0);
+    const date = dayjsLib.parse(targetDate);
+    const startDate = date.set('date', 1).toDate();
+    const endDate = date.endOf('month').toDate();
 
     // 対象月のエントリーのみをフィルタリング
     const filteredEntries = new Map<string, WorkEntry[]>();
@@ -56,4 +57,4 @@ export class CategoryTotalingService {
       hours
     }));
   }
-} 
+}
