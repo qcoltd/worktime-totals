@@ -1,6 +1,7 @@
 import { TableComponent, TableData } from '../../base/TableComponent';
 import { CategoryRatioData } from '../../../../../domain/category/types';
 import { CategoryRepository } from '../../../../../domain/category/CategoryRepository';
+import { getElementsAtIndices } from '@/scripts/workTimeTotals/src/utils/utils';
 
 export class CategoryEmployeeRatioTableComponent extends TableComponent {
   private readonly data: CategoryRatioData;
@@ -54,15 +55,40 @@ export class CategoryEmployeeRatioTableComponent extends TableComponent {
       dataRange.setValues(employeeData);
     }
 
+    // 全員0のプロジェクトは除外する
+    const includeProjectIndexes = headers.reduce((acc, project, projectIndex) => {
+      const categoryValues = employeeData.map(row => {
+        return row[projectIndex];
+      });
+      const allzero = categoryValues.every(value => value === 0);
+      if (allzero) {
+        return acc;
+      }
+      acc.push(projectIndex);
+      return acc;
+    }, [] as number[]);
+
+    console.log('CategoryEmployeeRatioTableComponent includeProjectIndexes' , includeProjectIndexes);
+    const headersContainingValues = getElementsAtIndices(headers, includeProjectIndexes);
+    console.log('🚀 ~ headersContainingValues:', headersContainingValues)
+    const rowsContainingValues = employeeData.map(row => {
+      return getElementsAtIndices(row, includeProjectIndexes);
+    });
+    console.log(rowsContainingValues);
+
+
     const tableData: TableData = {
-      title: '個別業務比率',
-      headers: ['従業員名', ...categories],
-      rows: employeeData
+      title: '個別業務比率２',
+      headers: headersContainingValues,
+      rows: rowsContainingValues
     };
 
+    console.log('tableData');
+    console.log(tableData);
+    console.log('rendering ')
     this.renderData(tableData);
 
     // 最終行を返す
     return this.startRow + 2 + employeeData.length;
   }
-} 
+}
